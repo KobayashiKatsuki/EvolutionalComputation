@@ -24,10 +24,31 @@
 
 """
 
-import indivisual
+from indivisual import indivisual
 
 #%%
-if __name__ == '__main__':
-    idv = indivisual() 
+def create_indivisuals(group_num):
+    """ 集団の生成 """
+
+    # 重複した個体が生まれないように集合で生成
+    idv_group = set()    
+    i = 0
+    while True:
+        idv = indivisual()
+        idv_group.add(idv)
+        i += 1
+        if idv_group.__len__() == group_num: 
+            break    
+    # 何かと扱いやすいリストで返却する
+    return list(idv_group)
+
+#%%
+# 遺伝的アルゴリズム　メイン処理
+#
+if __name__ == '__main__':    
+    # 集団を生成する
+    group_num = 10
+    idv_list = create_indivisuals(group_num)
     
-    
+    for idv in idv_list:        
+        idv.show_chromosome()
