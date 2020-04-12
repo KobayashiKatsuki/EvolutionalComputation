@@ -12,12 +12,10 @@ import gene
 import numpy as np
 
 class chromosome:
-    g_len = 10 # 遺伝子長
-    
-    def __init__(self, g_len=g_len):
+    def __init__(self, g_len):
         self.chrom = []
-        self.g_len = g_len
-
+        self.g_len = g_len # 遺伝子長
+        
         # ランダムに染色体を生成する
         for locus in range(self.g_len):
             g = gene.gene_bin(np.random.randint(2))
