@@ -27,28 +27,30 @@
 from indivisual import indivisual
 
 #%%
-def create_indivisuals(group_num):
+def create_group(group_size):
     """ 集団の生成 """
 
     # 重複した個体が生まれないように集合で生成
-    idv_group = set()    
+    group_set = set()    
     i = 0
     while True:
         idv = indivisual()
-        idv_group.add(idv)
+        group_set.add(idv)
         i += 1
-        if idv_group.__len__() == group_num: 
+        if group_set.__len__() == group_size: 
             break    
     # 何かと扱いやすいリストで返却する
-    return list(idv_group)
+    return list(group_set)
 
 #%%
 # 遺伝的アルゴリズム　メイン処理
 #
 if __name__ == '__main__':    
     # 集団を生成する
-    group_num = 10
-    idv_list = create_indivisuals(group_num)
+    group_size = 10
+    group = create_group(group_size)
     
-    for idv in idv_list:        
+    for idv in group:        
         idv.show_chromosome()
+
+# %%
