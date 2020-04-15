@@ -16,7 +16,7 @@ class chromosome:
         self.chrom = []
         self.g_len = g_len # 遺伝子長
         
-        # ランダムに染色体を生成する
+        # コンストラクタではランダムに染色体を生成する
         for i in range(self.g_len):
             g = gene.gene_bin(np.random.randint(2))
             self.chrom.append(g)

@@ -8,7 +8,7 @@
 class gene_bin:
     allele = {0: 0, 1: 1} #対立遺伝子セット（バイナリ）
 
-    def __init__(self, code):
+    def __init__(self, code=0):
         # コードをキーに遺伝子を生成する
         if code == 0 or code == 1:
             self.g_code = self.allele[code]

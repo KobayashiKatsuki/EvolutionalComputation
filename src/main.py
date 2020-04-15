@@ -27,14 +27,16 @@
 from indivisual import indivisual
 
 #%%
-def create_group(group_size):
-    """ 集団の生成 """
+def create_group(group_size, idv_g_len):
+    """ 
+    集団の生成
+    """
 
     # 重複した個体が生まれないように集合で生成
     group_set = set()    
     i = 0
     while True:
-        idv = indivisual()
+        idv = indivisual(idv_g_len)
         group_set.add(idv)
         i += 1
         if group_set.__len__() == group_size: 
@@ -42,15 +44,33 @@ def create_group(group_size):
     # 何かと扱いやすいリストで返却する
     return list(group_set)
 
+#%%　適応度評価
+def fitness(idv):
+    """ 適応度 """
+    pass
+
+
 #%%
 # 遺伝的アルゴリズム　メイン処理
 #
 if __name__ == '__main__':    
     # 集団を生成する
-    group_size = 10
-    group = create_group(group_size)
+    group = create_group(group_size=10, idv_g_len=5)
     
+    """
     for idv in group:        
         idv.show_chromosome()
+    """ 
+        
+    # 現世代の適応度評価
+    for idv in group:
+        f = fitness(idv)
+    
+    # 収束判定
+    
+    
+    # 交叉・淘汰・突然変異による次世代の生成
+    
+    
 
 # %%
