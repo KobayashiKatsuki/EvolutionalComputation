@@ -21,20 +21,20 @@ class chromosome:
             g = gene.gene_bin(np.random.randint(2))
             self.chrom.append(g)
     
-    def get_gene_list(self):
-        """ 染色体（遺伝子配列）を数値リストで返す """
-        chrom_lst = []
+    def get_gtype(self):
+        """ 染色体（遺伝子配列,GType）を数値リストで返す """
+        gtype = []
         for locus in range(self.g_len):
             g = self.chrom[locus]
-            chrom_lst.append(g.g_code)
+            gtype.append(g.g_code)
         
-        return chrom_lst
+        return gtype
     
     def get_mutant(self):
         """ 突然変異体（全配列が反転）を返す """
-        mutant_lst = []
+        mutant_gtype = []
         for locus in range(self.g_len):
             g = self.chrom[locus]
-            mutant_lst.append(g.get_allele())
+            mutant_gtype.append(g.get_allele())
         
-        return mutant_lst
+        return mutant_gtype

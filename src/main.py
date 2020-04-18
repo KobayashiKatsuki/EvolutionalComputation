@@ -16,6 +16,8 @@
 
 ・個体：　1つまたは複数の染色体から生成される実体
 　　　　　最適化問題の解とは最適な個体として表現される
+ ★個体をどう設計するか（解くべき問題にGEをどう適用するか）が
+ 　遺伝的アルゴリズムでは要となる
 
 ・集団：　様々な個体の集まり　この中の個体が解空間を探索する
 
@@ -25,51 +27,67 @@
 """
 
 from indivisual import indivisual
+from collections import OrderedDict
+import GASetting as GA
 
-#%%
-def create_group(group_size, idv_g_len):
+def CreateGroup(group_size=0, show=False):
     """ 
     集団の生成
     """
-
     # 重複した個体が生まれないように集合で生成
     group_set = set()    
     i = 0
     while True:
-        idv = indivisual(idv_g_len)
+        idv = indivisual()
         group_set.add(idv)
         i += 1
         if group_set.__len__() == group_size: 
             break    
-    # 何かと扱いやすいリストで返却する
+    
+    if show is True:
+        for idv in list(group_set):        
+            idv.show_indivisual_info()
+
+    # 何かと扱いやすいリストで返却する    
     return list(group_set)
-
-#%%　適応度評価
-def fitness(idv):
-    """ 適応度 """
-    pass
-
 
 #%%
 # 遺伝的アルゴリズム　メイン処理
 #
 if __name__ == '__main__':    
-    # 集団を生成する
-    group = create_group(group_size=10, idv_g_len=5)
+    # 問題設定を取り込む
+    ga_setting = GA.GASetting()
     
-    """
-    for idv in group:        
-        idv.show_chromosome()
-    """ 
+    # 初期集団を生成する
+    group = CreateGroup(group_size=10, show=False)    
+    
+    # 世代交代ループ
+    for generation in range(ga_setting.GENERATION_LOOP_NUM):
+
+        """ 現世代の適応度評価 """
+        cur_group_good = {}
+        cur_group_bad = {}
+        for idv in group:            
+            ptype = idv.get_PType()
+            f, c = idv.fitness()           
+            if c > ga_setting.capacity:
+                # 上回るものは問答無用で出来損ない
+                cur_group_bad[str(ptype)] = f
+            else:
+                # cが最大容量を下回るものは良い個体            
+                cur_group_good[str(ptype)] = f
         
-    # 現世代の適応度評価
-    for idv in group:
-        f = fitness(idv)
-    
-    # 収束判定
-    
-    
-    # 交叉・淘汰・突然変異による次世代の生成
+        #　個体を優秀な順にソートする
+        cur_good_sorted = sorted(cur_group_good.items(), key=lambda x:x[1])
+        cur_bad_sorted = sorted(cur_group_bad.items(), key=lambda x:x[1])        
+
+        """ 収束判定 """
+        # 適応度の前回値と変わらない、変化量が十分小さい、一定世代終えたら
+        #　終了してその世代の最も適応度の高い個体を出力
+        
+        
+        
+        # 交叉・淘汰・突然変異による次世代の生成
     
     
 
