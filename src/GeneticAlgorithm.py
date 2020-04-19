@@ -27,65 +27,67 @@
 """
 
 import numpy as np
+import matplotlib.pyplot as plt
 from indivisual import Indivisual
 from GASetting import GASetting as GA
 
 #%% 
-def create_group(group_size=0, show=False):
-    """ 
-    集団の生成
-    """
-    # 重複した個体が生まれないように集合で生成
-    group_set = set()    
-    i = 0
-    while True:
-        idv = Indivisual()
-        group_set.add(idv)
-        i += 1
-        if group_set.__len__() == group_size: 
-            break    
-    
-    if show is True:
-        for idv in list(group_set):        
-            idv.show_indivisual_info()
-
-    # 何かと扱いやすいリストで返却する    
-    return list(group_set)
-
-
-#%% 
 def sort_group_by_fitness(group):
     """
-    現世代の集団を適応度に応じてソートする
+    集団を適応度に応じてソートする
     """
     good_group = {}
     bad_group = {}
-    for idv in group:            
-        ptype = idv.get_PType()
+    for idv in group:    
         f, c = idv.fitness_and_capacity()           
         if c > GA.capacity:
             # 上回るものは問答無用で出来損ない
-            bad_group[str(ptype)] = (f, idv)
+            bad_group[str(idv.ptype)] = (f, idv)
         else:
             # cが最大容量を下回るものは良い個体            
-            good_group[str(ptype)] = (f, idv)
+            good_group[str(idv.ptype)] = (f, idv)
     
     #　個体を優秀な順にソートする
     good_sorted = sorted(good_group.items(), key=lambda x:x[1][0], reverse=True)
     bad_sorted = sorted(bad_group.items(), key=lambda x:x[1][0]) # badはfが小さいほど良いとする
     
     # ソート結果に応じて現在の集団（リスト）を生成する
-    current_group = []
+    sorted_group = []
     for ptype, (f, idv) in good_sorted:
-        current_group.append(idv)
+        sorted_group.append(idv)
     for ptype, (f, idv) in bad_sorted:
-        current_group.append(idv)
+        sorted_group.append(idv)
         
-    return current_group
+    return sorted_group
+
+#%% 
+def create_group(show=False):
+    """ 
+    集団の生成
+    """
+    group = []
+    gene_set = set() # 重複した個体が生まれないように集合を利用
+
+    while True:
+        idv = Indivisual()        
+        before_gene_set_len = gene_set.__len__()        
+        gene_set.add(str(idv.gtype))
+        if len(gene_set) > before_gene_set_len:
+            group.append(idv)
+        if len(group) == GA.GROUP_SIZE:
+            break    
+    
+    if show is True:
+        for idv in group:        
+            idv.show_indivisual_info()
+
+    return sort_group_by_fitness(group)
 
 #%%
 def reproduction(current_group):
-    next_group = [Indivisual()]
+    """ 選択・交叉・突然変異で次世代を生成する """
+    
+    next_group = []
     
     """ 
     選択 selection
@@ -93,28 +95,43 @@ def reproduction(current_group):
     ∵fitnessが大きくてもcapacityを超える個体は不良なので
       fitnessの値そのものを個体選択に影響させたくない
     """
-    # ランキングテーブル生成
-    all_fitness = 0
-    for idv in current_group:
-        all_fitness += idv.fitness
+    rank_tbl = GA.get_ranking_table()    
+    # SELECT_NUM個の個体を選択する
+    select_group = []    
+    selected_idv_flg = [0 for i in range(GA.GROUP_SIZE)] # 選択済みフラグ
+    select_count = 0
+    while True:
+        selection = np.random.uniform(0, 1)
+        # 乱数がテーブルのどこに入るか確認
+        for i in range(GA.GROUP_SIZE):
+            if selection < rank_tbl[i]:
+                # テーブルの該当箇所見つけて未訪問のときだけ選択
+                if selected_idv_flg[i] == 0: 
+                    selected_idv_flg[i] = 1
+                    select_group.append(current_group[i])
+                    select_count += 1
+                break            
+        if select_count > GA.SELECT_NUM-1:
+            break   
+
+    # 選択された個体は次世代にコピーする
+    for idv in select_group:
+        next_group.append(idv)
     
-    selection = np.random.uniform(0, 1)
+    """ 交叉と突然変異でGROUP_SIZEに達するまで個体を生成し続ける """
+    while len(next_group) < GA.GROUP_SIZE:
+        """ 
+        交叉 crossover
+        選択された個体のうち2つから新たに2個の個体を生成する
+        """
+        next_group.append(Indivisual())
+           
+        """ 
+        突然変異 mutation
+        """
+        
     
-    
-    """ 
-    交叉 crossover
-    """
-    
-    
-    
-    
-    """ 
-    突然変異 mutation
-    """
-    
-    
-    
-    return next_group
+    return sort_group_by_fitness(next_group)
 
 
 #%% 収束判定
@@ -141,34 +158,33 @@ def is_converged(current_group, next_group):
 #
 if __name__ == '__main__':    
     # 初期集団を生成する
-    #group = create_group(group_size=GA.GROUP_SIZE, show=True)    
-    group = create_group(group_size=GA.GROUP_SIZE)        
+    #group = create_group(show=True)    
+    current_group = create_group()        
     # 現世代で最も優れた個体
     most_valuable_idv = Indivisual() # 初期値はランダム
     
     # 世代交代ループ    
     for generation in range(1, GA.GENERATION_LOOP_NUM+1):
-        print(f'===== Generation No.{generation} =====')
-
-        """ 現世代の適応度評価 """
-        current_group = sort_group_by_fitness(group)
+        print(f'===== Champ. of Generation No.{generation} =====')
+        most_valuable_idv = current_group[0]
+        most_valuable_idv.show_indivisual_info()
+        print('')
         
         """ 選択（淘汰）・交叉・突然変異による次世代の生成 """
         next_group = reproduction(current_group)
         
         """ 収束判定 """
-        most_valuable_idv = current_group[0]
-        most_valuable_idv.show_indivisual_info()
+        """        
+        以下の方法は同じ個体がmvpになったら収束と判断してしまうのでカット
         if is_converged(current_group, next_group) is True:
             # 収束なら終了           
             break
-        else:
-            # 収束していなければ世代交代して次のループ
-            group.clear()
-            for idv in next_group:
-                group.append(idv)
+        """
+        
+        # 世代交代して次のループ
+        current_group.clear()
+        current_group.extend(next_group)
 
-        print('')
         
     # 解（最も優れた個体）の出力
     #most_valuable_idv.show_indivisual_info()

@@ -38,10 +38,6 @@ class Indivisual:
         # 適応度
         print(f'fitness: {self.fitness:.1f}, capacity: {self.capacity:.1f}')
     
-    def get_PType(self):
-        """ 個体のPtype（表出している特徴、見た目、つまり解候補）を取得する """
-        return self.ptype
-    
     def fitness_and_capacity(self):
         """ 個体の適応度, キャパ計算 """
         f_val = 0
