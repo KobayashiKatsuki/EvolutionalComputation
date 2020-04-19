@@ -5,7 +5,7 @@
 　‐対立遺伝子(allele)：　遺伝子がとりうる値(g_code)
  　（バイナリエンコーディングなら0, 1の2値）
 """
-class gene_bin:
+class GeneBin:
     allele = {0: 0, 1: 1} #対立遺伝子セット（バイナリ）
 
     def __init__(self, code=0):

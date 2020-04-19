@@ -11,17 +11,17 @@
 import gene
 import numpy as np
 
-class chromosome:
+class Chromosome:
     def __init__(self, g_len):
         self.chrom = []
         self.g_len = g_len # 遺伝子長
         
         # コンストラクタではランダムに染色体を生成する
         for i in range(self.g_len):
-            g = gene.gene_bin(np.random.randint(2))
+            g = gene.GeneBin(np.random.randint(2))
             self.chrom.append(g)
     
-    def get_gtype(self):
+    def get_GType(self):
         """ 染色体（遺伝子配列,GType）を数値リストで返す """
         gtype = []
         for locus in range(self.g_len):
