@@ -30,6 +30,18 @@ class Chromosome:
         
         return gtype
     
+    def get_Gene(self, locus):
+        """ 遺伝子をひとつ取り出す """
+        if locus >= 0 and locus < self.g_len:
+            return self.chrom[locus]
+        else:
+            return None
+    
+    def set_Gene(self, locus, g: gene.GeneBin):
+        """ 染色体に遺伝子をセットする """
+        if locus >= 0 and locus < self.g_len:
+            self.chrom[locus] = g
+    
     def get_mutant(self):
         """ 突然変異体（全配列が反転）を返す """
         mutant_gtype = []

@@ -8,17 +8,18 @@ from collections import OrderedDict
 class GASetting:
     # 何世代ループするか
     GENERATION_LOOP_NUM = 3        
-    # 1世代を形成する集団のサイズ（必ず10以上とする）
-    GROUP_SIZE = 20
-    # 選択する個体数（必ずGROUP_SIZE未満とする）
-    SELECT_NUM = 10    
-    # ランキング選択のテーブル
-    rank_tbl = []
+    # 1世代を形成する集団のサイズ
+    GROUP_SIZE = 20 
     # 交叉確率
-    CROSSOVER_PROB = 0.9    
+    CROSSOVER_PROB = 0.85    
+    # 突然変異率(必ず 交叉率 + 突然変異率 < 1 とする)
+    MUTATION_PROB = 0.05    
     # 収束判定
     converged_dif = 0.1
     
+    # ランキング選択のテーブル
+    rank_tbl = []
+
     """ ナップサック問題固有の設定 """
     capacity = 5 # ナップサックの容量
     item = OrderedDict()

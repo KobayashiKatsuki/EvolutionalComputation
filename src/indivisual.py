@@ -10,6 +10,8 @@
 　G-typeは各種演算（交叉・淘汰・突然変異）の対象であり、
 　P-typeは解そのものを表す
 """
+
+import numpy as np
 import chromosome
 from GASetting import GASetting as GA
 
@@ -21,9 +23,13 @@ class Indivisual:
     for k in GA.item.keys():
         locus2elem.append(k)
     
-    def __init__(self):
+    def __init__(self, init_chrom=None):
         # この個体が持つ染色体
-        self.chrom = chromosome.Chromosome(Indivisual.g_len)
+        if init_chrom == None:
+            self.chrom = chromosome.Chromosome(Indivisual.g_len)
+        else:
+            self.chrom = init_chrom
+
         # 遺伝子型(genotype)　遺伝子長は個体（解きたい問題）により異なる
         self.gtype = self.chrom.get_GType()         
         # 表現型（phenotype）
@@ -42,7 +48,7 @@ class Indivisual:
         """ 個体の適応度, キャパ計算 """
         f_val = 0
         c_val = 0
-        for locus in range(self.g_len):
+        for locus in range(Indivisual.g_len):
             if self.gtype[locus]==1:
                 elem = Indivisual.locus2elem[locus]
                 f_val += GA.item[elem][0]
@@ -56,7 +62,7 @@ class Indivisual:
         デコーダ　Gtype -> Ptpye の変換
         """
         ptype_array = []        
-        for locus in range(self.g_len):
+        for locus in range(Indivisual.g_len):
             if self.gtype[locus] == 1:
                 ptype_array.append(Indivisual.locus2elem[locus])
                 
@@ -69,3 +75,36 @@ class Indivisual:
         """
         pass
 
+#%%
+    def crossover(self, partner):
+        """ 
+         交叉 他の個体のG-typeとランダムで遺伝子を交換する        
+        """
+        parent1_chrom = self.chrom
+        parent2_chrom = partner.chrom
+        
+        child1_chrom = chromosome.Chromosome(Indivisual.g_len)
+        child2_chrom = chromosome.Chromosome(Indivisual.g_len)
+
+        for locus in range(Indivisual.g_len):
+            p1_g = parent1_chrom.get_Gene(locus)
+            p2_g = parent2_chrom.get_Gene(locus)
+            
+            is_cross = np.random.randint(2)
+            if is_cross == 1:
+                child1_chrom.set_Gene(locus, p2_g)
+                child2_chrom.set_Gene(locus, p1_g)
+            else:
+                child1_chrom.set_Gene(locus, p1_g)
+                child2_chrom.set_Gene(locus, p2_g)
+        
+        child1 = Indivisual(child1_chrom)
+        child2 = Indivisual(child2_chrom)        
+        
+        return child1, child2
+
+#%%
+    def mutation(self):
+        """ 突然変異体を生成する """
+        
+        return Indivisual()

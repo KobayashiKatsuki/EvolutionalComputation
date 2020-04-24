@@ -66,15 +66,15 @@ def create_group(show=False):
     集団の生成
     """
     group = []
-    gene_set = set() # 重複した個体が生まれないように集合を利用
+    gene_set = set() # 初期集団は重複した個体が生まれないように集合を利用
 
     while True:
         idv = Indivisual()        
         before_gene_set_len = gene_set.__len__()        
         gene_set.add(str(idv.gtype))
-        if len(gene_set) > before_gene_set_len:
+        if gene_set.__len__() > before_gene_set_len:
             group.append(idv)
-        if len(group) == GA.GROUP_SIZE:
+        if group.__len__() == GA.GROUP_SIZE:
             break    
     
     if show is True:
@@ -83,53 +83,65 @@ def create_group(show=False):
 
     return sort_group_by_fitness(group)
 
+
+
+#%%
+def select_indivisual(group, sel_num=1):
+    """ 個体の選択 selection
+     ランキング方式を使用する
+     ∵fitnessが大きくてもcapacityを超える個体は不良なので
+       fitnessの値そのものを個体選択に影響させたくない
+    """
+    rank_tbl = GA.get_ranking_table()    
+    selected_idv = []
+    selected_flg = [0 for i in range(rank_tbl.__len__())]
+    
+    # sel_num < len(rank_tbl)個の個体を選択する
+    while selected_idv.__len__() < sel_num:
+        # 乱数selectionがテーブルのどこに入るか確認
+        selection = np.random.uniform(0, 1)
+        for i in range(rank_tbl.__len__()):
+            if selection < rank_tbl[i]:
+                if selected_flg[i] == 0:
+                    selected_flg[i] = 1
+                    selected_idv.append(group[i])
+                    break
+
+    return selected_idv
+
+
 #%%
 def reproduction(current_group):
     """ 選択・交叉・突然変異で次世代を生成する """
-    
     next_group = []
     
-    """ 
-    選択 selection
-    ランキング方式を使用する
-    ∵fitnessが大きくてもcapacityを超える個体は不良なので
-      fitnessの値そのものを個体選択に影響させたくない
-    """
-    rank_tbl = GA.get_ranking_table()    
-    # SELECT_NUM個の個体を選択する
-    select_group = []    
-    selected_idv_flg = [0 for i in range(GA.GROUP_SIZE)] # 選択済みフラグ
-    select_count = 0
-    while True:
-        selection = np.random.uniform(0, 1)
-        # 乱数がテーブルのどこに入るか確認
-        for i in range(GA.GROUP_SIZE):
-            if selection < rank_tbl[i]:
-                # テーブルの該当箇所見つけて未訪問のときだけ選択
-                if selected_idv_flg[i] == 0: 
-                    selected_idv_flg[i] = 1
-                    select_group.append(current_group[i])
-                    select_count += 1
-                break            
-        if select_count > GA.SELECT_NUM-1:
-            break   
-
-    # 選択された個体は次世代にコピーする
-    for idv in select_group:
-        next_group.append(idv)
+    # 個体の遺伝子操作を選択するテーブル（各操作の選択確率で生成した累積度数分布）
+    operation_tbl = [GA.CROSSOVER_PROB, 
+                     GA.MUTATION_PROB + GA.CROSSOVER_PROB,
+                     1.0]
     
-    """ 交叉と突然変異でGROUP_SIZEに達するまで個体を生成し続ける """
-    while len(next_group) < GA.GROUP_SIZE:
-        """ 
-        交叉 crossover
-        選択された個体のうち2つから新たに2個の個体を生成する
-        """
-        next_group.append(Indivisual())
-           
-        """ 
-        突然変異 mutation
-        """
+    while next_group.__len__() < GA.GROUP_SIZE:
+        # オペレーションの選択
+        op = np.random.uniform(0, 1)        
+        if op < operation_tbl[0]:
+            # 交叉 個体を2つ選択する
+            sel_idv = select_indivisual(current_group, sel_num=2)
+            child_idv1, child_idv2 = sel_idv[0].crossover(sel_idv[1])
+
+            next_group.append(child_idv1)
+            if next_group.__len__() < GA.GROUP_SIZE:
+                next_group.append(child_idv2)
         
+        elif op < operation_tbl[1]:
+            # 突然変異
+            sel_idv = select_indivisual(current_group)
+            mutant = sel_idv[0].mutation()
+            next_group.append(mutant)
+            
+        else:
+            # 再生 次世代にそのままコピー
+            sel_idv = select_indivisual(current_group)            
+            next_group.append(sel_idv[0])
     
     return sort_group_by_fitness(next_group)
 
