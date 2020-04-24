@@ -7,13 +7,15 @@ from collections import OrderedDict
 
 class GASetting:
     # 何世代ループするか
-    GENERATION_LOOP_NUM = 3        
+    GENERATION_LOOP_NUM = 1        
     # 1世代を形成する集団のサイズ
     GROUP_SIZE = 20 
     # 交叉確率
     CROSSOVER_PROB = 0.85    
     # 突然変異率(必ず 交叉率 + 突然変異率 < 1 とする)
-    MUTATION_PROB = 0.05    
+    MUTATION_PROB = 0.01    
+    # 突然変異させる割合（必ず1以上　1だとすべての遺伝子を対立遺伝子に入れ替える）
+    MUTATION_RATE = 4
     # 収束判定
     converged_dif = 0.1
     

@@ -126,7 +126,7 @@ def reproduction(current_group):
         if op < operation_tbl[0]:
             # 交叉 個体を2つ選択する
             sel_idv = select_indivisual(current_group, sel_num=2)
-            child_idv1, child_idv2 = sel_idv[0].crossover(sel_idv[1])
+            child_idv1, child_idv2 = sel_idv[0].crossover(sel_idv[1].chrom)
 
             next_group.append(child_idv1)
             if next_group.__len__() < GA.GROUP_SIZE:

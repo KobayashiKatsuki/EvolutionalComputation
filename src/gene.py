@@ -10,12 +10,8 @@ class GeneBin:
 
     def __init__(self, code=0):
         # コードをキーに遺伝子を生成する
-        if code == 0 or code == 1:
-            self.g_code = self.allele[code]
-        else:
-            self.g_code = self.allele[0]
+        self.g_code = self.allele[code]
     
-    def get_allele(self):
-        """ 対立遺伝子を1つ返す """
+    def get_allele_code(self):
+        """ 対立遺伝子コードを取得する """
         return self.allele[0] if self.g_code == 1 else self.allele[1]
-        

@@ -76,27 +76,25 @@ class Indivisual:
         pass
 
 #%%
-    def crossover(self, partner):
+    def crossover(self, partner_chrom: chromosome.Chromosome):
         """ 
          交叉 他の個体のG-typeとランダムで遺伝子を交換する        
-        """
-        parent1_chrom = self.chrom
-        parent2_chrom = partner.chrom
-        
+        """        
         child1_chrom = chromosome.Chromosome(Indivisual.g_len)
         child2_chrom = chromosome.Chromosome(Indivisual.g_len)
 
         for locus in range(Indivisual.g_len):
-            p1_g = parent1_chrom.get_Gene(locus)
-            p2_g = parent2_chrom.get_Gene(locus)
+            p1_g = self.chrom.get_gene(locus)
+            p2_g = partner_chrom.get_gene(locus)
             
+            # 一様交叉　
             is_cross = np.random.randint(2)
             if is_cross == 1:
-                child1_chrom.set_Gene(locus, p2_g)
-                child2_chrom.set_Gene(locus, p1_g)
+                child1_chrom.set_gene(locus, p2_g)
+                child2_chrom.set_gene(locus, p1_g)
             else:
-                child1_chrom.set_Gene(locus, p1_g)
-                child2_chrom.set_Gene(locus, p2_g)
+                child1_chrom.set_gene(locus, p1_g)
+                child2_chrom.set_gene(locus, p2_g)
         
         child1 = Indivisual(child1_chrom)
         child2 = Indivisual(child2_chrom)        
@@ -106,5 +104,23 @@ class Indivisual:
 #%%
     def mutation(self):
         """ 突然変異体を生成する """
+        mutant_chrom = chromosome.Chromosome(Indivisual.g_len)
         
-        return Indivisual()
+        # 少なくともひとつの遺伝子座を一定確率で対立遺伝子にする
+        mutant_flg = False
+        while mutant_flg is False:
+        
+            for locus in range(Indivisual.g_len):
+                p_g = self.chrom.get_gene(locus)
+                p_a = self.chrom.get_allele(locus)
+                
+                is_mutation = np.random.randint(GA.MUTATION_RATE)
+                if is_mutation == 0:
+                    mutant_chrom.set_gene(locus, p_a)
+                    mutant_flg = True
+                else:
+                    mutant_chrom.set_gene(locus, p_g) 
+            
+        mutant = Indivisual(mutant_chrom)
+        
+        return mutant
