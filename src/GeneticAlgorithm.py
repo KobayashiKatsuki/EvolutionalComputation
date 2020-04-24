@@ -36,26 +36,26 @@ def sort_group_by_fitness(group):
     """
     集団を適応度に応じてソートする
     """
-    good_group = {}
-    bad_group = {}
+    good_group = []
+    bad_group = []
     for idv in group:    
         f, c = idv.fitness_and_capacity()           
         if c > GA.capacity:
             # 上回るものは問答無用で出来損ない
-            bad_group[str(idv.ptype)] = (f, idv)
+            bad_group.append((f, idv))
         else:
             # cが最大容量を下回るものは良い個体            
-            good_group[str(idv.ptype)] = (f, idv)
+            good_group.append((f, idv))
     
     #　個体を優秀な順にソートする
-    good_sorted = sorted(good_group.items(), key=lambda x:x[1][0], reverse=True)
-    bad_sorted = sorted(bad_group.items(), key=lambda x:x[1][0]) # badはfが小さいほど良いとする
+    good_sorted = sorted(good_group, key=lambda x:x[0], reverse=True)
+    bad_sorted = sorted(bad_group, key=lambda x:x[0]) # badはfが小さいほど良いとする
     
     # ソート結果に応じて現在の集団（リスト）を生成する
     sorted_group = []
-    for ptype, (f, idv) in good_sorted:
+    for (f, idv) in good_sorted:
         sorted_group.append(idv)
-    for ptype, (f, idv) in bad_sorted:
+    for (f, idv) in bad_sorted:
         sorted_group.append(idv)
         
     return sorted_group
@@ -199,7 +199,8 @@ if __name__ == '__main__':
 
         
     # 解（最も優れた個体）の出力
-    #most_valuable_idv.show_indivisual_info()
+    print('最強生物')
+    most_valuable_idv.show_indivisual_info()
     print('finish')
     
 # %%

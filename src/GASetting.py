@@ -7,7 +7,7 @@ from collections import OrderedDict
 
 class GASetting:
     # 何世代ループするか
-    GENERATION_LOOP_NUM = 1        
+    GENERATION_LOOP_NUM = 10   
     # 1世代を形成する集団のサイズ
     GROUP_SIZE = 20 
     # 交叉確率
