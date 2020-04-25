@@ -40,9 +40,13 @@ class Indivisual:
     def show_indivisual_info(self):
         """ 個体情報を表示する """        
         # 染色体情報
-        print(f'g_len: {Indivisual.g_len} {self.gtype} {self.ptype}')
+        print(f'{self.gtype} {self.ptype}')
         # 適応度
         print(f'fitness: {self.fitness:.1f}, capacity: {self.capacity:.1f}')
+        
+    def show_GType(self):
+        """ G typeだけ表示する """
+        print(f'{self.gtype}')
     
     def fitness_and_capacity(self):
         """ 個体の適応度, キャパ計算 """

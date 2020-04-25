@@ -92,16 +92,15 @@ def select_indivisual(group, sel_num=1):
      ∵fitnessが大きくてもcapacityを超える個体は不良なので
        fitnessの値そのものを個体選択に影響させたくない
     """
-    rank_tbl = GA.get_ranking_table()    
     selected_idv = []
-    selected_flg = [0 for i in range(rank_tbl.__len__())]
+    selected_flg = [0 for i in range(GA.rank_tbl.__len__())]
     
     # sel_num < len(rank_tbl)個の個体を選択する
     while selected_idv.__len__() < sel_num:
         # 乱数selectionがテーブルのどこに入るか確認
         selection = np.random.uniform(0, 1)
-        for i in range(rank_tbl.__len__()):
-            if selection < rank_tbl[i]:
+        for i in range(GA.rank_tbl.__len__()):
+            if selection < GA.rank_tbl[i]:
                 if selected_flg[i] == 0:
                     selected_flg[i] = 1
                     selected_idv.append(group[i])
@@ -149,19 +148,10 @@ def reproduction(current_group):
 #%% 収束判定
 def is_converged(current_group, next_group):
     """
-    適応度の前回値と変わらない、変化量が十分小さい場合は収束と判定
+    集団全体の平均適応度増加率が一定期間一定値以下なら収束
     """
     converged = False
-    
-    # いずれも先頭が最も適応度が高い個体となるようにソート済みとする
-    current_fitness = current_group[0].fitness
-    next_fitness = next_group[0].fitness
-    
-    # 絶対誤差が一定値以下？
-    abs_dif = abs(current_fitness - next_fitness)    
-    if abs_dif < GA.converged_dif:
-        converged = True
-    
+    # 未実装
     return converged
 
 
@@ -169,29 +159,42 @@ def is_converged(current_group, next_group):
 # 遺伝的アルゴリズム　メイン処理
 #
 if __name__ == '__main__':    
+    # GA初期化
+    GA.create_ranking_table()
+    
     # 初期集団を生成する
     #group = create_group(show=True)    
     current_group = create_group()        
     # 現世代で最も優れた個体
     most_valuable_idv = Indivisual() # 初期値はランダム
+    # 適応度の変化をグラフ化するためのデータ格納領域
+    optimum_fitness_list = []
+    optimum_fitness_list.append(0)
+    mean_fitness_list = []
+    mean_fitness_list.append(0)
     
     # 世代交代ループ    
     for generation in range(1, GA.GENERATION_LOOP_NUM+1):
-        print(f'===== Champ. of Generation No.{generation} =====')
+        print(f'===== Generation No.{generation} =====')
+        for c_idv in current_group:
+            c_idv.show_GType()        
+        print(' --- champion indivisual ---')
         most_valuable_idv = current_group[0]
         most_valuable_idv.show_indivisual_info()
         print('')
         
+        optimum_fitness_list.append(most_valuable_idv.fitness)
+        mean_f = 0
+        for idv in current_group:
+            mean_f += idv.fitness
+        mean_fitness_list.append(mean_f / GA.GROUP_SIZE)
+        
         """ 選択（淘汰）・交叉・突然変異による次世代の生成 """
         next_group = reproduction(current_group)
         
-        """ 収束判定 """
-        """        
-        以下の方法は同じ個体がmvpになったら収束と判断してしまうのでカット
+        # 収束判定
         if is_converged(current_group, next_group) is True:
-            # 収束なら終了           
             break
-        """
         
         # 世代交代して次のループ
         current_group.clear()
@@ -199,8 +202,16 @@ if __name__ == '__main__':
 
         
     # 解（最も優れた個体）の出力
-    print('最強生物')
+    print('最強個体')
     most_valuable_idv.show_indivisual_info()
     print('finish')
+    
+    # プロットしてみる
+    generation_label = [i for i in range(GA.GENERATION_LOOP_NUM + 1)]
+    plt.plot(generation_label, mean_fitness_list, marker='o', color='red')
+    plt.plot(generation_label, optimum_fitness_list, marker='o', color='blue')
+    plt.xlabel('Generation')
+    plt.ylabel('Fitness')
+    plt.show()    
     
 # %%
