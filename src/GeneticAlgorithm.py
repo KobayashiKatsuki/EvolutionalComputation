@@ -39,13 +39,12 @@ def sort_group_by_fitness(group):
     good_group = []
     bad_group = []
     for idv in group:    
-        f, c = idv.fitness_and_capacity()           
-        if c > GA.capacity:
+        if idv.capacity > GA.capacity:
             # 上回るものは問答無用で出来損ない
-            bad_group.append((f, idv))
+            bad_group.append((idv.fitness, idv))
         else:
             # cが最大容量を下回るものは良い個体            
-            good_group.append((f, idv))
+            good_group.append((idv.fitness, idv))
     
     #　個体を優秀な順にソートする
     good_sorted = sorted(good_group, key=lambda x:x[0], reverse=True)
@@ -176,8 +175,10 @@ if __name__ == '__main__':
     # 世代交代ループ    
     for generation in range(1, GA.GENERATION_LOOP_NUM+1):
         print(f'===== Generation No.{generation} =====')
+        """
         for c_idv in current_group:
             c_idv.show_GType()        
+        """
         print(' --- champion indivisual ---')
         most_valuable_idv = current_group[0]
         most_valuable_idv.show_indivisual_info()
@@ -208,8 +209,8 @@ if __name__ == '__main__':
     
     # プロットしてみる
     generation_label = [i for i in range(GA.GENERATION_LOOP_NUM + 1)]
-    plt.plot(generation_label, mean_fitness_list, marker='o', color='red')
-    plt.plot(generation_label, optimum_fitness_list, marker='o', color='blue')
+    plt.plot(generation_label, mean_fitness_list, marker='o', color='red', markersize=3)
+    plt.plot(generation_label, optimum_fitness_list, marker='o', color='blue', markersize=3)
     plt.xlabel('Generation')
     plt.ylabel('Fitness')
     plt.show()    

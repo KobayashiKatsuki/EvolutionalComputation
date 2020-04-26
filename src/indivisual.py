@@ -12,7 +12,7 @@
 """
 
 import numpy as np
-import chromosome
+from chromosome import Chromosome
 from GASetting import GASetting as GA
 
 #%%
@@ -26,7 +26,7 @@ class Indivisual:
     def __init__(self, init_chrom=None):
         # この個体が持つ染色体
         if init_chrom == None:
-            self.chrom = chromosome.Chromosome(Indivisual.g_len)
+            self.chrom = Chromosome(Indivisual.g_len)
         else:
             self.chrom = init_chrom
 
@@ -35,7 +35,7 @@ class Indivisual:
         # 表現型（phenotype）
         self.ptype = self.decoder()
         # 適応度、容量
-        self.fitness, self.capacity = self.fitness_and_capacity()
+        self.fitness, self.capacity = self.calc_fitness_and_capacity()
         
     def show_indivisual_info(self):
         """ 個体情報を表示する """        
@@ -48,7 +48,7 @@ class Indivisual:
         """ G typeだけ表示する """
         print(f'{self.gtype}')
     
-    def fitness_and_capacity(self):
+    def calc_fitness_and_capacity(self):
         """ 個体の適応度, キャパ計算 """
         f_val = 0
         c_val = 0
@@ -59,6 +59,16 @@ class Indivisual:
                 c_val += GA.item[elem][1]
                 
         return f_val, c_val
+    
+    def calc_fitness(self):
+        """ 個体の適応度計算 """
+        f_val = 0
+        for locus in range(Indivisual.g_len):
+            if self.gtype[locus]==1:
+                elem = Indivisual.locus2elem[locus]
+                f_val += GA.item[elem][0]
+                
+        return f_val
     
 #%% エンコーダ・デコーダ　実際に最適化問題を設計するときはここの実装を頑張る
     def decoder(self):
@@ -80,13 +90,13 @@ class Indivisual:
         pass
 
 #%%
-    def crossover(self, partner_chrom: chromosome.Chromosome):
+    def crossover(self, partner_chrom: Chromosome):
         """ 
          交叉 他の個体のG-typeとランダムで遺伝子を交換する        
         """        
-        child1_chrom = chromosome.Chromosome(Indivisual.g_len)
-        child2_chrom = chromosome.Chromosome(Indivisual.g_len)
-
+        child1_chrom = Chromosome(Indivisual.g_len)
+        child2_chrom = Chromosome(Indivisual.g_len)
+        
         for locus in range(Indivisual.g_len):
             p1_g = self.chrom.get_gene(locus)
             p2_g = partner_chrom.get_gene(locus)
@@ -108,7 +118,7 @@ class Indivisual:
 #%%
     def mutation(self):
         """ 突然変異体を生成する """
-        mutant_chrom = chromosome.Chromosome(Indivisual.g_len)
+        mutant_chrom = Chromosome(Indivisual.g_len)
         
         # 少なくともひとつの遺伝子座を一定確率で対立遺伝子にする
         mutant_flg = False

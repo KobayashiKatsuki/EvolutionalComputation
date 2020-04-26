@@ -6,19 +6,21 @@
 　‐遺伝子座(locus)：　染色体上における各遺伝子の位置
 　‐遺伝子型（GType）：　染色体を表す記号列、内部表現
 　‐表現型（PType）：　染色体から個体として発現する外部表現
+ 
+  どの遺伝子を用いるかは問題設定次第 
+ 
 """
 
 import gene
 import numpy as np
+from GASetting import GASetting as GA
 
 class Chromosome:
     def __init__(self, g_len):
         self.chrom = []
         self.g_len = g_len # 遺伝子長
-        
-        # コンストラクタではランダムに染色体を生成する
         for i in range(self.g_len):
-            g = gene.GeneBin(np.random.randint(2))
+            g = gene.GeneBin() # 遺伝子(バイナリ)
             self.chrom.append(g)
     
     def get_GType(self):
@@ -43,11 +45,12 @@ class Chromosome:
             self.chrom[locus] = g
     
     def get_allele(self, locus):
-        """ 突然変異遺伝子を取り出す """
+        """ 対立遺伝子をひとつ取り出す """
         if locus >= 0 and locus < self.g_len:
             g = self.chrom[locus]
-            allele_code = g.get_allele_code()
-            allele = gene.GeneBin(allele_code)
+            allele = gene.GeneBin(g.g_code) # 同じコードの遺伝子を生成し…
+            allele.invert_g_code() # その遺伝子コードを反転させる
             return allele
+        
         else:
             return None
