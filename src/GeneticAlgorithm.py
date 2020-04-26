@@ -162,7 +162,6 @@ if __name__ == '__main__':
     GA.create_ranking_table()
     
     # 初期集団を生成する
-    #group = create_group(show=True)    
     current_group = create_group()        
     # 現世代で最も優れた個体
     most_valuable_idv = Indivisual() # 初期値はランダム
@@ -189,6 +188,13 @@ if __name__ == '__main__':
         for idv in current_group:
             mean_f += idv.fitness
         mean_fitness_list.append(mean_f / GA.GROUP_SIZE)
+        
+        # TSPのときは（最適値の）地図も出す
+        for (px, py) in most_valuable_idv.ptype:
+            plt.plot(px, py, marker='o',color='blue')
+
+        plt.show()
+        
         
         """ 選択（淘汰）・交叉・突然変異による次世代の生成 """
         next_group = reproduction(current_group)

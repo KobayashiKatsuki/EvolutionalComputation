@@ -10,8 +10,8 @@ import numpy as np
 
 class GASetting:
     # 解きたい問題タイプ　いずれかのコメントアウト外す
-    PROBLEM_TYPE = 'KNAPSACK'
-    #PROBREM_TYPE = 'TSP'
+    #PROBLEM_TYPE = 'KNAPSACK'
+    PROBLEM_TYPE = 'TSP'
     
     # 何世代ループするか
     GENERATION_LOOP_NUM = 100
@@ -30,6 +30,7 @@ class GASetting:
     # 探索する要素を格納する領域
     item = OrderedDict()
     
+    # 問題ごとの設定
     if PROBLEM_TYPE == 'KNAPSACK':
         """ ナップサック問題の設定 """
         """ Ei: アイテム名, (Pi, Ci): (価値, 容量) """   
@@ -48,14 +49,12 @@ class GASetting:
     elif PROBLEM_TYPE == 'TSP':
         """ 巡回セールスマン問題 """
         """ Ci: 都市名, (Px, Py): (x座標, y座標) """
-        PROBREM_TYPE = 'TSP'
+        capacity = 1 # 便宜的に…
         city_num = 8 # 都市の数
-        """
-        for c in city_num:
+        for i in range(city_num):
             px = np.random.uniform(0, 10)
             py = np.random.uniform(0, 10)
             item[f'C{i+1}'] = (px, py)
-        """
         cities = item.keys()
         
 #%%    

@@ -29,6 +29,13 @@ class GeneBin(Gene):
         """ 突然変異を起こす（自身の遺伝子コードを反転する） """
         self.g_code = self.allele[0] if self.g_code == 1 else self.allele[1]
     
-#class GenePerm(Gene):
-#    """ 順列エンコーディング """
-#    allele = {}
+class GenePerm(Gene):
+    """ 順列エンコーディング """    
+    allele = list(GA.item.keys())
+    
+    def __init__(self, city=None):
+        self.g_code = city
+        # 初期都市名が無い場合はランダムに生成
+        if city is None:
+            self.g_code = self.allele[np.random.randint(GA.item.__len__())]
+            

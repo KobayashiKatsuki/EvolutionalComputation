@@ -34,22 +34,29 @@ class Indivisual:
         self.gtype = self.chrom.get_GType()         
         # 表現型（phenotype）
         self.ptype = self.decoder()
-        # 適応度、容量
-        self.fitness, self.capacity = self.calc_fitness_and_capacity()
+        
+        if GA.PROBLEM_TYPE == 'KNAPSACK':
+            # 適応度、容量
+            self.fitness, self.capacity = self.calc_fitness_and_capacity()
+        elif GA.PROBLEM_TYPE == 'TSP':
+            # 適応度
+            self.fitness = self.calc_fitness()
+            self.capacity = 0 # 便宜的に…
+            
         
     def show_indivisual_info(self):
         """ 個体情報を表示する """        
         # 染色体情報
         print(f'{self.gtype} {self.ptype}')
         # 適応度
-        print(f'fitness: {self.fitness:.1f}, capacity: {self.capacity:.1f}')
+        print(f'fitness: {self.fitness:.3f}, capacity: {self.capacity:.1f}')
         
     def show_GType(self):
         """ G typeだけ表示する """
         print(f'{self.gtype}')
     
     def calc_fitness_and_capacity(self):
-        """ 個体の適応度, キャパ計算 """
+        """ 0-1ナップザック問題の個体の適応度, キャパ計算 """
         f_val = 0
         c_val = 0
         for locus in range(Indivisual.g_len):
@@ -61,12 +68,19 @@ class Indivisual:
         return f_val, c_val
     
     def calc_fitness(self):
-        """ 個体の適応度計算 """
+        """ 巡回セールスマン問題の適応度計算 """
         f_val = 0
-        for locus in range(Indivisual.g_len):
-            if self.gtype[locus]==1:
-                elem = Indivisual.locus2elem[locus]
-                f_val += GA.item[elem][0]
+        all_dist = 0
+        # 都市間の距離を合計していく
+        for locus in range(self.g_len-1):            
+            city_i = self.gtype[locus]
+            (ci_x, ci_y) = GA.item[city_i]
+            city_j = self.gtype[locus+1]
+            (cj_x, cj_y) = GA.item[city_j]
+            dij = pow((ci_x-cj_x)**2 + (ci_y-cj_y)**2, 0.5)
+            all_dist += dij
+        
+        f_val = 1 / all_dist if all_dist > 0 else -1
                 
         return f_val
     
@@ -76,9 +90,17 @@ class Indivisual:
         デコーダ　Gtype -> Ptpye の変換
         """
         ptype_array = []        
-        for locus in range(Indivisual.g_len):
-            if self.gtype[locus] == 1:
-                ptype_array.append(Indivisual.locus2elem[locus])
+        
+        if GA.PROBLEM_TYPE == 'KNAPSACK':
+            for locus in range(Indivisual.g_len):
+                if self.gtype[locus] == 1:
+                    ptype_array.append(Indivisual.locus2elem[locus])
+
+        elif GA.PROBLEM_TYPE == 'TSP':
+            """ TSPのときのPTypeは座標値とする """
+            for locus in range(self.g_len):
+                city = self.gtype[locus]
+                ptype_array.append(GA.item[city])
                 
         return ptype_array
 

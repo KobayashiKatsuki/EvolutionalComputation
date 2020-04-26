@@ -16,12 +16,24 @@ import numpy as np
 from GASetting import GASetting as GA
 
 class Chromosome:
+        
     def __init__(self, g_len):
         self.chrom = []
         self.g_len = g_len # 遺伝子長
-        for i in range(self.g_len):
-            g = gene.GeneBin() # 遺伝子(バイナリ)
-            self.chrom.append(g)
+        
+        if GA.PROBLEM_TYPE == 'KNAPSACK':            
+            for i in range(self.g_len):
+                g = gene.GeneBin() # 遺伝子(バイナリ)
+                self.chrom.append(g)
+                
+        elif GA.PROBLEM_TYPE == 'TSP':
+            # ランダムなalleleの順序で遺伝子配列を生成する
+            allele_perm = np.array(list(GA.item.keys()))
+            np.random.shuffle(allele_perm)
+            for city_code in list(allele_perm):
+                g = gene.GenePerm(city_code)
+                self.chrom.append(g)
+                
     
     def get_GType(self):
         """ 染色体（遺伝子配列,GType）を数値リストで返す """
