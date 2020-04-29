@@ -50,8 +50,16 @@ class Chromosome:
             return self.chrom[locus]
         else:
             return None
+        
+    def get_gene_by_code(self, code):
+        """ 遺伝子を遺伝子コードから検索して取り出す """
+        """ 重複する対立遺伝子を持たない染色体でのみ有効（順列エンコーディングなど） """
+        for g in self.chrom:
+            if code == g.g_code:
+                return g
+        return None
     
-    def set_gene(self, locus, g: gene.GeneBin):
+    def set_gene(self, locus, g: gene.Gene):
         """ 染色体に遺伝子をセットする """
         if locus >= 0 and locus < self.g_len:
             self.chrom[locus] = g

@@ -190,11 +190,11 @@ if __name__ == '__main__':
         mean_fitness_list.append(mean_f / GA.GROUP_SIZE)
         
         # TSPのときは（最適値の）地図も出す
+        """
         for (px, py) in most_valuable_idv.ptype:
             plt.plot(px, py, marker='o',color='blue')
-
         plt.show()
-        
+        """
         
         """ 選択（淘汰）・交叉・突然変異による次世代の生成 """
         next_group = reproduction(current_group)

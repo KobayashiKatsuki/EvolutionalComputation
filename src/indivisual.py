@@ -70,12 +70,15 @@ class Indivisual:
     def calc_fitness(self):
         """ 巡回セールスマン問題の適応度計算 """
         f_val = 0
-        all_dist = 0
+        
         # 都市間の距離を合計していく
-        for locus in range(self.g_len-1):            
+        all_dist = 0
+        for locus in range(self.g_len):            
             city_i = self.gtype[locus]
             (ci_x, ci_y) = GA.item[city_i]
-            city_j = self.gtype[locus+1]
+            city_j = self.gtype[0]            
+            if locus < self.g_len - 1:                
+                city_j = self.gtype[locus+1]
             (cj_x, cj_y) = GA.item[city_j]
             dij = pow((ci_x-cj_x)**2 + (ci_y-cj_y)**2, 0.5)
             all_dist += dij
@@ -119,19 +122,59 @@ class Indivisual:
         child1_chrom = Chromosome(Indivisual.g_len)
         child2_chrom = Chromosome(Indivisual.g_len)
         
-        for locus in range(Indivisual.g_len):
-            p1_g = self.chrom.get_gene(locus)
-            p2_g = partner_chrom.get_gene(locus)
+        if GA.PROBLEM_TYPE == 'KNAPSACK':            
+            # 一様交叉
+            for locus in range(Indivisual.g_len):
+                p1_g = self.chrom.get_gene(locus)
+                p2_g = partner_chrom.get_gene(locus)                
+                is_cross = np.random.randint(2)
+                if is_cross == 1:
+                    child1_chrom.set_gene(locus, p2_g)
+                    child2_chrom.set_gene(locus, p1_g)
+                else:
+                    child1_chrom.set_gene(locus, p1_g)
+                    child2_chrom.set_gene(locus, p2_g)
             
-            # 一様交叉　
-            is_cross = np.random.randint(2)
-            if is_cross == 1:
-                child1_chrom.set_gene(locus, p2_g)
-                child2_chrom.set_gene(locus, p1_g)
-            else:
+        elif GA.PROBLEM_TYPE == 'TSP':
+            # 一様位置交叉
+            # まずは交叉点をランダムに選んでコードを取得する
+            p1_cross_code = []
+            p2_cross_code = []
+            for locus in range(Indivisual.g_len):
+                is_cross = np.random.randint(2)
+                if is_cross == 1:
+                    p1_cross_code.append(self.chrom.get_gene(locus).g_code)
+                    p2_cross_code.append(partner_chrom.get_gene(locus).g_code)
+                else:
+                    p1_cross_code.append(None)
+                    p2_cross_code.append(None)
+
+            # それぞれ交叉点以外の遺伝子を取得
+            p1_orig_code = []
+            p2_orig_code = []
+            for locus in range(Indivisual.g_len):
+                p1_g = self.chrom.get_gene(locus)                
+                if p1_g.g_code not in p2_cross_code: # 交叉する側を見るので注意！
+                    p1_orig_code.append(p1_g.g_code)
+                
+                p2_g = partner_chrom.get_gene(locus)
+                if p2_g.g_code not in p1_cross_code: # 交叉する側を見るので注意!
+                    p2_orig_code.append(p2_g.g_code)            
+            
+            # コードから遺伝子を取得して次世代にコピーする
+            for locus in range(Indivisual.g_len):
+                p1_g_code = p2_cross_code[locus]
+                if p1_g_code is None:
+                    p1_g_code = p1_orig_code.pop(0)
+                p1_g = self.chrom.get_gene_by_code(p1_g_code)
                 child1_chrom.set_gene(locus, p1_g)
+                
+                p2_g_code = p1_cross_code[locus]
+                if p2_g_code is None:
+                    p2_g_code = p2_orig_code.pop(0)
+                p2_g = self.chrom.get_gene_by_code(p2_g_code)
                 child2_chrom.set_gene(locus, p2_g)
-        
+ 
         child1 = Indivisual(child1_chrom)
         child2 = Indivisual(child2_chrom)        
         
@@ -141,22 +184,36 @@ class Indivisual:
     def mutation(self):
         """ 突然変異体を生成する """
         mutant_chrom = Chromosome(Indivisual.g_len)
-        
-        # 少なくともひとつの遺伝子座を一定確率で対立遺伝子にする
-        mutant_flg = False
-        while mutant_flg is False:
-        
-            for locus in range(Indivisual.g_len):
-                p_g = self.chrom.get_gene(locus)
-                p_a = self.chrom.get_allele(locus)
-                
-                is_mutation = np.random.randint(GA.MUTATION_RATE)
-                if is_mutation == 0:
-                    mutant_chrom.set_gene(locus, p_a)
-                    mutant_flg = True
-                else:
-                    mutant_chrom.set_gene(locus, p_g) 
+
+        if GA.PROBLEM_TYPE == 'KNAPSACK':     
+            # 少なくともひとつの遺伝子座を一定確率で対立遺伝子にする
+            mutant_flg = False
+            while mutant_flg is False:
             
+                for locus in range(Indivisual.g_len):
+                    p_g = self.chrom.get_gene(locus)
+                    p_a = self.chrom.get_allele(locus)
+                    
+                    is_mutation = np.random.randint(GA.MUTATION_RATE)
+                    if is_mutation == 0:
+                        mutant_chrom.set_gene(locus, p_a)
+                        mutant_flg = True
+                    else:
+                        mutant_chrom.set_gene(locus, p_g) 
+                        
+        elif GA.PROBLEM_TYPE == 'TSP':
+            # まずはコピー
+            for locus in range(self.g_len):
+                p_g = self.chrom.get_gene(locus)
+                mutant_chrom.set_gene(locus, p_g)
+                
+            # ランダムで選んだ2か所の遺伝子座を入れ替える                            
+            swap_locus = np.random.choice(np.array(range(self.g_len)), size=2, replace=False)
+            m1_g = self.chrom.get_gene(swap_locus[0])
+            m2_g = self.chrom.get_gene(swap_locus[1])
+            mutant_chrom.set_gene(swap_locus[0], m2_g)
+            mutant_chrom.set_gene(swap_locus[1], m1_g)
+        
         mutant = Indivisual(mutant_chrom)
         
         return mutant

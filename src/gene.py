@@ -15,6 +15,7 @@ class Gene:
     def __init__(self):
         pass
 
+
 class GeneBin(Gene):
     """ バイナリエンコーディング """
     allele = {0: 0, 1: 1} #バイナリエンコーディング
@@ -28,6 +29,7 @@ class GeneBin(Gene):
     def invert_g_code(self):
         """ 突然変異を起こす（自身の遺伝子コードを反転する） """
         self.g_code = self.allele[0] if self.g_code == 1 else self.allele[1]
+
     
 class GenePerm(Gene):
     """ 順列エンコーディング """    
