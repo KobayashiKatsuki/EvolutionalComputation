@@ -14,13 +14,13 @@ class GASetting:
     PROBLEM_TYPE = 'TSP'
     
     # 何世代ループするか
-    GENERATION_LOOP_NUM = 100
+    GENERATION_LOOP_NUM = 1000
     # 1世代を形成する集団のサイズ
-    GROUP_SIZE = 15 
+    GROUP_SIZE = 1000 
     # 交叉確率
-    CROSSOVER_PROB = 0.85    
+    CROSSOVER_PROB = 0.9    
     # 突然変異率(必ず 交叉率 + 突然変異率 < 1 とする)
-    MUTATION_PROB = 0.1   
+    MUTATION_PROB = 0.2   
     # 突然変異させる割合（必ず1以上　1だとすべての遺伝子を対立遺伝子に入れ替える）
     MUTATION_RATE = 4
     # 収束判定
@@ -50,7 +50,7 @@ class GASetting:
         """ 巡回セールスマン問題 """
         """ Ci: 都市名, (Px, Py): (x座標, y座標) """
         capacity = 1 # 便宜的に…
-        city_num = 8 # 都市の数
+        city_num = 100 # 都市の数
         for i in range(city_num):
             px = np.random.uniform(0, 10)
             py = np.random.uniform(0, 10)

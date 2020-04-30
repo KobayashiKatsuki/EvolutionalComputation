@@ -25,11 +25,13 @@
 ・デコーディング：　遺伝子型から表現型への変換（複合化）
 
 """
-
-import numpy as np
-import matplotlib.pyplot as plt
 from indivisual import Indivisual
 from GASetting import GASetting as GA
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib import rcParams
+rcParams['font.family'] = 'sans-serif'
+rcParams['font.sans-serif'] = ['Hiragino Maru Gothic Pro', 'Yu Gothic', 'Meirio', 'Takao', 'IPAexGothic', 'IPAPGothic', 'Noto Sans CJK JP']
 
 #%% 
 def sort_group_by_fitness(group):
@@ -171,17 +173,26 @@ if __name__ == '__main__':
     mean_fitness_list = []
     mean_fitness_list.append(0)
     
+    # TSPのとき描画
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    
+    if GA.PROBLEM_TYPE == 'TSP':
+        plt.show()   
+    
     # 世代交代ループ    
     for generation in range(1, GA.GENERATION_LOOP_NUM+1):
+        """
         print(f'===== Generation No.{generation} =====')
+        """
         """
         for c_idv in current_group:
             c_idv.show_GType()        
         """
-        print(' --- champion indivisual ---')
+        #print(' --- champion indivisual ---')        
         most_valuable_idv = current_group[0]
-        most_valuable_idv.show_indivisual_info()
-        print('')
+        #most_valuable_idv.show_indivisual_info()
+        #print('')
         
         optimum_fitness_list.append(most_valuable_idv.fitness)
         mean_f = 0
@@ -190,11 +201,23 @@ if __name__ == '__main__':
         mean_fitness_list.append(mean_f / GA.GROUP_SIZE)
         
         # TSPのときは（最適値の）地図も出す
-        """
-        for (px, py) in most_valuable_idv.ptype:
-            plt.plot(px, py, marker='o',color='blue')
-        plt.show()
-        """
+        if GA.PROBLEM_TYPE == 'TSP':
+            plt.cla()  
+            plt.xlim(-1, 11)
+            plt.ylim(-1, 11)
+
+            city_px = []
+            city_py = []           
+            for (px, py) in most_valuable_idv.ptype:
+                plt.plot(px, py, marker='o',color='blue', markersize=5)
+                city_px.append(px)
+                city_py.append(py)
+            city_px.append(city_px[0])
+            city_py.append(city_py[0])
+                
+            plt.plot(city_px, city_py, color='red')
+            plt.title(f'第{generation}世代')
+            plt.pause(0.05)
         
         """ 選択（淘汰）・交叉・突然変異による次世代の生成 """
         next_group = reproduction(current_group)
@@ -213,12 +236,13 @@ if __name__ == '__main__':
     most_valuable_idv.show_indivisual_info()
     print('finish')
     
-    # プロットしてみる
+    # fitnessをプロットしてみる
+    """
     generation_label = [i for i in range(GA.GENERATION_LOOP_NUM + 1)]
     plt.plot(generation_label, mean_fitness_list, marker='o', color='red', markersize=3)
     plt.plot(generation_label, optimum_fitness_list, marker='o', color='blue', markersize=3)
     plt.xlabel('Generation')
     plt.ylabel('Fitness')
     plt.show()    
-    
+    """
 # %%
