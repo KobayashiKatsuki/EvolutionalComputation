@@ -28,6 +28,7 @@
 from indivisual import Indivisual
 from GASetting import GASetting as GA
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 rcParams['font.family'] = 'sans-serif'
@@ -173,51 +174,23 @@ if __name__ == '__main__':
     mean_fitness_list = []
     mean_fitness_list.append(0)
     
-    # TSPのとき描画
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
-    
-    if GA.PROBLEM_TYPE == 'TSP':
-        plt.show()   
+    # 各世代での歴代最適個体
+    mvp_for_each_generation = []
     
     # 世代交代ループ    
     for generation in range(1, GA.GENERATION_LOOP_NUM+1):
-        """
         print(f'===== Generation No.{generation} =====')
-        """
-        """
-        for c_idv in current_group:
-            c_idv.show_GType()        
-        """
-        #print(' --- champion indivisual ---')        
+        #for c_idv in current_group:
+        #    c_idv.show_GType()      
+        
         most_valuable_idv = current_group[0]
-        #most_valuable_idv.show_indivisual_info()
-        #print('')
+        mvp_for_each_generation.append(most_valuable_idv)
         
         optimum_fitness_list.append(most_valuable_idv.fitness)
         mean_f = 0
         for idv in current_group:
             mean_f += idv.fitness
         mean_fitness_list.append(mean_f / GA.GROUP_SIZE)
-        
-        # TSPのときは（最適値の）地図も出す
-        if GA.PROBLEM_TYPE == 'TSP':
-            plt.cla()  
-            plt.xlim(-1, 11)
-            plt.ylim(-1, 11)
-
-            city_px = []
-            city_py = []           
-            for (px, py) in most_valuable_idv.ptype:
-                plt.plot(px, py, marker='o',color='blue', markersize=5)
-                city_px.append(px)
-                city_py.append(py)
-            city_px.append(city_px[0])
-            city_py.append(city_py[0])
-                
-            plt.plot(city_px, city_py, color='red')
-            plt.title(f'第{generation}世代')
-            plt.pause(0.05)
         
         """ 選択（淘汰）・交叉・突然変異による次世代の生成 """
         next_group = reproduction(current_group)
@@ -235,6 +208,34 @@ if __name__ == '__main__':
     print('最強個体')
     most_valuable_idv.show_indivisual_info()
     print('finish')
+    
+    
+    # TSPのとき描画してみる    
+    if GA.PROBLEM_TYPE == 'TSP':
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+        plt.show()   
+        
+        generation = 0
+        for mvp in mvp_for_each_generation:
+            generation += 1
+            plt.cla()  
+            plt.xlim(-1, 11)
+            plt.ylim(-1, 11)
+    
+            city_px = []
+            city_py = []           
+            for (px, py) in mvp.ptype:
+                plt.plot(px, py, marker='o',color='blue', markersize=5)
+                city_px.append(px)
+                city_py.append(py)
+            city_px.append(city_px[0])
+            city_py.append(city_py[0])
+                
+            plt.plot(city_px, city_py, color='red')
+            plt.title(f'第{generation}世代    fitness={mvp.fitness:.5f}')
+            plt.pause(0.1)
+    
     
     # fitnessをプロットしてみる
     """
