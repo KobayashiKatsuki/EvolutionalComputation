@@ -18,65 +18,91 @@ from GPSetting import GPSetting as GP
 class Chromosome:
     
     def __init__(self):
-        self.chrom = []
+        self.chrom = {}
         self.g_id_list= [0]
         
-        # ルートは四則演算のいずれか
-        g_root = Gene(0)
+        # ルートノードは四則演算のいずれか
+        g_rn = Gene(g_id=0)
         self.g_len = 1
-        self.chrom.append(g_root)
+        self.chrom[g_rn.g_id] = g_rn
         
         # 枝葉を再帰的に追加していく
-        self.append_gene(g_parent=g_root, depth=1)
-        
+        self.append_gene(g_parent=g_rn, depth=1)
         # 末端のノードをランダムで変数に置き換える
         
         
+        self.gtype = self.get_GType()
         
-    def append_gene(self, g_parent: Gene =g_parent, depth=d):
+    def append_gene(self, g_parent:Gene, depth):
         """ 指定した遺伝子に再帰的に遺伝子を追加していく """
         """ g_anc: 追加対象に指定した遺伝子, d: 追加する階層の深さ """
         
-        if g_parent.node_type == Gene.NODE_ARITHMETIC:
-            # 四則演算のときのみ実行        
+        # 右側引数
+        self.g_len += 1   
+        if depth < GP.MAX_DEPTH: 
+            # 最大深さ未満なら乱数か演算子かランダム
+            g_child1 = Gene(g_id=self.g_len-1)
+        else:
+            # 最大深度に到達していれば乱数ノード
+            g_child1 = Gene(g_id=self.g_len-1, is_operand=True)
 
-            # 右側引数
-            self.g_len += 1   
-            g_child1 = Gene(self.g_len-1)
-            g_parent.arg1_id = g_child1.g_id
-            self.chrom.append(g_child1)       
-            
-            if g_child1.node_type == Gene.NODE_ARITHMETIC:
-                self.append_gene(g_parent=g_child1, depth=d+1)
-                
-            # 左側引数
-            self.g_len += 1   
-            g_child2 = Gene(self.g_len-1)
-            g_parent.arg2_id = g_child2.g_id
-            self.chrom.append(g_child2)               
-            
-            
-            
-            if g_child2.node_type == Gene.NODE_ARITHMETIC:
-                self.append_gene(g_parent=g_child2, depth=d+1)
+        g_parent.arg1_id = g_child1.g_id
+        self.chrom[g_child1.g_id] = g_child1                       
+        
+        if g_child1.node_type == Gene.NODE_ARITHMETIC:
+            # 演算子ノードなら再帰的にオペランドを追加する
+            self.append_gene(g_parent=g_child1, depth=depth+1)
 
-            if d < GP.MAX_DEPTH:
-                # 最大深さ未満ならランダム
-                                
-            else:
-                # 乱数ノードのみ
-                self.g_len += 1
-                g_child = Gene(self.g_len-1, is_operand=True)
-                
+                        
+        # 左側引数 右とやること同じ
+        self.g_len += 1   
+        if depth < GP.MAX_DEPTH: 
+            g_child2 = Gene(g_id=self.g_len-1)
+        else:
+            g_child2 = Gene(g_id=self.g_len-1, is_operand=True)            
+
+        g_parent.arg2_id = g_child2.g_id
+        self.chrom[g_child2.g_id] = g_child2               
+        
+        if g_child2.node_type == Gene.NODE_ARITHMETIC:
+            self.append_gene(g_parent=g_child2, depth=depth+1)
+            
         return
+    
+    def calc_gene_tree(self, g_id):
+        """ 遺伝子ツリーを巡回して計算する """
+        g:Gene = self.chrom[g_id]
+        ans = 0
+        
+        if g.node_type == Gene.NODE_ARITHMETIC:
+            # 演算子　左右の引数オペランドを取得
+            arg1 = self.calc_gene_tree(g_id=g.arg1_id)
+            arg2 = self.calc_gene_tree(g_id=g.arg2_id)
+            
+            if g.g_code == 'add':
+                ans = arg1 + arg2
+            elif g.g_code == 'sub':
+                ans = arg1 - arg2
+            elif g.g_code == 'mul':
+                ans = arg1 * arg2
+            elif g.g_code == 'div':
+                if arg2 != 0:
+                    ans = arg1 / arg2
+                else:
+                    ans = 1            
+            
+        elif g.node_type == Gene.NODE_OPERAND:
+            # 実数ノード
+            ans = g.g_code
+        
+        return ans
     
     
     def get_GType(self):
         """ 染色体（遺伝子配列,GType）を数値リストで返す """
         gtype = []
-        for locus in range(self.g_len):
-            g = self.chrom[locus]
-            gtype.append(g.g_code)
+        for g_id, g in self.chrom.items():
+            gtype.append((g_id, g.g_code))
         
         return gtype
     

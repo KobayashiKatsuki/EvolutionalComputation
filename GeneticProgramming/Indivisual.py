@@ -42,10 +42,17 @@ class Indivisual:
         print(f'{self.gtype}')
     
     def calc_fitness(self):
-        """ 適応度計算 """
+        """ 適応度計算 """        
+        # ツリーで各テストデータの計算を行い、結果の平均誤差を評価値とする
+        
         f_val = 0
         
-        # ツリーで各テストデータの計算を行い、結果の平均誤差を評価値とする
+        print(self.gtype)
+        
+        
+        f_val_tmp = self.chrom.calc_gene_tree(g_id=0)        
+        
+        
         """
         all_dist = 0
         for locus in range(self.g_len):            
@@ -60,12 +67,15 @@ class Indivisual:
         
         f_val = 1 / all_dist if all_dist > 0 else -1
         """     
+        
         return f_val
+            
     
 #%% エンコーダ・デコーダ　実際に最適化問題を設計するときはここの実装を頑張る
     def decoder(self):
         """
         デコーダ　Gtype -> Ptpye の変換
+        木構造。。。。
         """
         ptype_array = []        
         """

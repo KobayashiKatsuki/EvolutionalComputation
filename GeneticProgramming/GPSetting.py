@@ -14,7 +14,7 @@ class GPSetting:
     # 何世代ループするか
     GENERATION_LOOP_NUM = 1
     # 1世代を形成する集団のサイズ
-    GROUP_SIZE = 2
+    GROUP_SIZE = 1
     # 交叉確率
     CROSSOVER_PROB = 0.8    
     # 突然変異率(必ず 交叉率 + 突然変異率 < 1 とする)

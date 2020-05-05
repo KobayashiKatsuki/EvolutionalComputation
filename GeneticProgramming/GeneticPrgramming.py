@@ -28,7 +28,7 @@ def sort_group_by_fitness(group):
     集団を適応度に応じてソートする
     """
     idv_list = []
-    for idv in idv_list:    
+    for idv in group:    
         idv_list.append((idv.fitness, idv))
     
     #　個体を適応度の順にソートする
@@ -78,6 +78,9 @@ if __name__ == '__main__':
     
     # 初期集団を生成する
     current_group = create_group()        
+    
+    """
+    
     # 現世代で最も優れた個体
     most_valuable_idv = Indivisual() # 初期値はランダム
     # 適応度の変化をグラフ化するためのデータ格納領域
@@ -93,7 +96,7 @@ if __name__ == '__main__':
     for generation in range(1, GP.GENERATION_LOOP_NUM+1):
         print(f'===== Generation No.{generation} =====')
 
-        """ 選択（淘汰）・交叉・突然変異による次世代の生成 """
+        # 選択（淘汰）・交叉・突然変異による次世代の生成
         next_group = reproduction(current_group)
         
                 
@@ -101,5 +104,5 @@ if __name__ == '__main__':
         current_group.clear()
         current_group.extend(next_group)
 
-        
+    """
     print('finish')

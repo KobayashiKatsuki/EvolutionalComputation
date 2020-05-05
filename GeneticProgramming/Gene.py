@@ -31,19 +31,20 @@ class Gene:
             #NODE_BOOLEAN: ['and', 'or', 'not', 'gt', 'lt', 'eq', 'neq']
             }
     
-    def __init__(self, g_id=None, is_operand=False):
+    def __init__(self, g_id, is_operand=False):
         self.g_id = g_id
-        # g_id=0はルートノードを表す。必ずオペランド以外
+
         if self.g_id == 0:
+            # g_id=0はルートノードを表す。必ずオペランド以外
             self.create_arithmetic_node()
         
         else:        
-            # オペランドと指定なら乱数ノード
             if is_operand is True:
+                # オペランド指定なら乱数ノード
                 self.create_random_node()
                 
             else:
-                # ランダムに生成
+                # デフォルトならランダムに生成
                 select_type = np.random.randint(2)                
                 if select_type == 0:
                     self.create_random_node()
@@ -51,10 +52,13 @@ class Gene:
                 elif select_type == 1:
                     self.create_arithmetic_node()
         
+        
     def create_random_node(self):
         """ 乱数ノードを作る """
         self.node_type = Gene.NODE_OPERAND
-        self.g_code = np.random.uniform(-10, 10)
+        #self.g_code = np.random.uniform(-10, 10)
+        self.g_code = np.random.randint(-10, 10)
+        
         
     def create_arithmetic_node(self):
         """ 演算子ノードを作る """
