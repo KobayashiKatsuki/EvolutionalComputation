@@ -6,8 +6,11 @@
 """
 
 import numpy as np
+import pandas as pd
+from Gene import Gene
 from Chromosome import Chromosome
 from GPSetting import GPSetting as GP
+from graphviz import Digraph
 
 #%%
 class Indivisual:    
@@ -37,6 +40,21 @@ class Indivisual:
         # 適応度
         print(f'fitness: {self.fitness:.3f}')
         
+    def visualize_indivisual(self):
+        """ グラフを描画する """
+        g_tree = Digraph(format='png')        
+        for g_id, gene in self.chrom.chrom_dict.items():
+            g_tree.node(f'({g_id}) {gene.g_code}')
+            if gene.node_type == Gene.NODE_ARITHMETIC:
+                # 演算子ノードの場合
+                arg1_code = self.chrom.chrom_dict[gene.arg1_id].g_code
+                arg2_code = self.chrom.chrom_dict[gene.arg2_id].g_code         
+                g_tree.edge(f'({g_id}) {gene.g_code}', f'({gene.arg1_id}) {arg1_code}')
+                g_tree.edge(f'({g_id}) {gene.g_code}', f'({gene.arg2_id}) {arg2_code}')
+        
+        g_tree.view()        
+        return
+        
     def show_GType(self):
         """ G typeだけ表示する """
         print(f'{self.gtype}')
@@ -44,30 +62,13 @@ class Indivisual:
     def calc_fitness(self):
         """ 適応度計算 """        
         # ツリーで各テストデータの計算を行い、結果の平均誤差を評価値とする
-        
         f_val = 0
-        
-        print(self.gtype)
-        
-        
-        f_val_tmp = self.chrom.calc_gene_tree(g_id=0)        
-        
-        
-        """
-        all_dist = 0
-        for locus in range(self.g_len):            
-            city_i = self.gtype[locus]
-            (ci_x, ci_y) = GA.item[city_i]
-            city_j = self.gtype[0]            
-            if locus < self.g_len - 1:                
-                city_j = self.gtype[locus+1]
-            (cj_x, cj_y) = GA.item[city_j]
-            dij = pow((ci_x-cj_x)**2 + (ci_y-cj_y)**2, 0.5)
-            all_dist += dij
-        
-        f_val = 1 / all_dist if all_dist > 0 else -1
-        """     
-        
+        for tc in GP.testcase.values():
+            print(tc)
+            calc_result = self.chrom.calc_gene_tree(g_id=0, **tc)        
+            print(calc_result)
+            break
+
         return f_val
             
     

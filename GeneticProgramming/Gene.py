@@ -3,7 +3,7 @@
 遺伝子クラス
 """
 import numpy as np
-import GPSetting as GP
+from GPSetting import GPSetting as GP
 import random
 
 class Gene:
@@ -26,7 +26,7 @@ class Gene:
     
     # 対立遺伝子
     allele = {
-            NODE_OPERAND: GP.GPSetting.var_list,
+            NODE_OPERAND: GP.var_list,
             NODE_ARITHMETIC: ['add', 'sub', 'mul', 'div'],
             #NODE_BOOLEAN: ['and', 'or', 'not', 'gt', 'lt', 'eq', 'neq']
             }
@@ -40,25 +40,26 @@ class Gene:
         
         else:        
             if is_operand is True:
-                # オペランド指定なら乱数ノード
-                self.create_random_node()
+                # オペランド指定ならオペランドノード
+                self.create_operand_node()
                 
             else:
                 # デフォルトならランダムに生成
                 select_type = np.random.randint(2)                
                 if select_type == 0:
-                    self.create_random_node()
+                    self.create_operand_node()
 
                 elif select_type == 1:
                     self.create_arithmetic_node()
         
-        
-    def create_random_node(self):
-        """ 乱数ノードを作る """
+    def create_operand_node(self):
+        """ オペランドノードを作る """        
         self.node_type = Gene.NODE_OPERAND
-        #self.g_code = np.random.uniform(-10, 10)
-        self.g_code = np.random.randint(-10, 10)
-        
+        is_var = np.random.randint(2) # 実数か変数かは確率1/2
+        if is_var == 0:
+            self.g_code = np.random.randint(1, 10) # 1～9の整数
+        else:
+            self.g_code = random.choice(Gene.allele[Gene.NODE_OPERAND]) # 変数名はランダム（抜け漏れ無しは保証できない）
         
     def create_arithmetic_node(self):
         """ 演算子ノードを作る """
@@ -67,5 +68,9 @@ class Gene:
         # 引数としてさらに二つの遺伝子を持つ（g_idで指定する）
         self.arg1_id = None
         self.arg2_id = None
+        
+    def replace_gene_code(self, new_g_code):
+        """ 遺伝子コードを置き換える """
+        self.g_code = new_g_code
         
                 

@@ -18,20 +18,16 @@ from GPSetting import GPSetting as GP
 class Chromosome:
     
     def __init__(self):
-        self.chrom = {}
-        self.g_id_list= [0]
-        
+        self.chrom_dict = {} # 遺伝子IDをキー、遺伝子オブジェクトをバリューとした辞書
         # ルートノードは四則演算のいずれか
         g_rn = Gene(g_id=0)
         self.g_len = 1
-        self.chrom[g_rn.g_id] = g_rn
-        
+        self.chrom_dict[g_rn.g_id] = g_rn        
         # 枝葉を再帰的に追加していく
         self.append_gene(g_parent=g_rn, depth=1)
-        # 末端のノードをランダムで変数に置き換える
-        
-        
+        # Gtypeは遺伝子ID,遺伝子コードのリスト
         self.gtype = self.get_GType()
+        
         
     def append_gene(self, g_parent:Gene, depth):
         """ 指定した遺伝子に再帰的に遺伝子を追加していく """
@@ -47,7 +43,7 @@ class Chromosome:
             g_child1 = Gene(g_id=self.g_len-1, is_operand=True)
 
         g_parent.arg1_id = g_child1.g_id
-        self.chrom[g_child1.g_id] = g_child1                       
+        self.chrom_dict[g_child1.g_id] = g_child1                       
         
         if g_child1.node_type == Gene.NODE_ARITHMETIC:
             # 演算子ノードなら再帰的にオペランドを追加する
@@ -62,22 +58,22 @@ class Chromosome:
             g_child2 = Gene(g_id=self.g_len-1, is_operand=True)            
 
         g_parent.arg2_id = g_child2.g_id
-        self.chrom[g_child2.g_id] = g_child2               
+        self.chrom_dict[g_child2.g_id] = g_child2               
         
         if g_child2.node_type == Gene.NODE_ARITHMETIC:
             self.append_gene(g_parent=g_child2, depth=depth+1)
             
         return
     
-    def calc_gene_tree(self, g_id):
+    def calc_gene_tree(self, g_id, **testcase: dict):
         """ 遺伝子ツリーを巡回して計算する """
-        g:Gene = self.chrom[g_id]
+        g:Gene = self.chrom_dict[g_id]
         ans = 0
         
         if g.node_type == Gene.NODE_ARITHMETIC:
             # 演算子　左右の引数オペランドを取得
-            arg1 = self.calc_gene_tree(g_id=g.arg1_id)
-            arg2 = self.calc_gene_tree(g_id=g.arg2_id)
+            arg1 = self.calc_gene_tree(g_id=g.arg1_id, **testcase)
+            arg2 = self.calc_gene_tree(g_id=g.arg2_id, **testcase)
             
             if g.g_code == 'add':
                 ans = arg1 + arg2
@@ -86,22 +82,23 @@ class Chromosome:
             elif g.g_code == 'mul':
                 ans = arg1 * arg2
             elif g.g_code == 'div':
-                if arg2 != 0:
-                    ans = arg1 / arg2
-                else:
-                    ans = 1            
-            
+                eps = 1.0e-7 # 0除算は0とする
+                ans = arg1 / arg2 if np.abs(arg2) > eps else 0
+                
         elif g.node_type == Gene.NODE_OPERAND:
-            # 実数ノード
-            ans = g.g_code
+            # オペランドノード
+            if g.g_code in testcase.keys():
+                ans = testcase[g.g_code]
+            else:            
+                ans = g.g_code
         
         return ans
     
     
     def get_GType(self):
-        """ 染色体（遺伝子配列,GType）を数値リストで返す """
+        """ 染色体（遺伝子ID,遺伝子コードのリスト）を数値リストで返す """
         gtype = []
-        for g_id, g in self.chrom.items():
+        for g_id, g in self.chrom_dict.items():
             gtype.append((g_id, g.g_code))
         
         return gtype

@@ -71,13 +71,17 @@ def reproduction(current_group):
     return current_group
 
 #%%
-
+    
 if __name__ == '__main__':
     # 初期設定
     GP.create_ranking_table()
     
     # 初期集団を生成する
     current_group = create_group()        
+    
+    # 個体（遺伝子計算ツリーグラフ）可視化
+    current_group[0].visualize_indivisual()
+    print(f'fitness: {current_group[0].fitness}')
     
     """
     

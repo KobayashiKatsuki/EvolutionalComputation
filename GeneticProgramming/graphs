@@ -1,0 +1,11 @@
+digraph {
+	sub
+	sub -> -3
+	sub -> mul
+	-3
+	mul
+	mul -> -6
+	mul -> 2
+	-6
+	2
+}
