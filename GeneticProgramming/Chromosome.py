@@ -19,8 +19,8 @@ class Chromosome:
     
     def __init__(self):
         self.chrom_dict = {} # 遺伝子IDをキー、遺伝子オブジェクトをバリューとした辞書
-        # ルートノードは四則演算のいずれか
-        g_rn = Gene(g_id=0)
+        # ルートノード
+        g_rn = Gene(g_id=0, node_type=Gene.NODE_ARITHMETIC)
         self.g_len = 1
         self.chrom_dict[g_rn.g_id] = g_rn        
         # 枝葉を再帰的に追加していく
@@ -33,14 +33,17 @@ class Chromosome:
         """ 指定した遺伝子に再帰的に遺伝子を追加していく """
         """ g_anc: 追加対象に指定した遺伝子, d: 追加する階層の深さ """
         
-        # 右側引数
-        self.g_len += 1   
-        if depth < GP.MAX_DEPTH: 
-            # 最大深さ未満なら乱数か演算子かランダム
+        # 左側引数
+        self.g_len += 1           
+        if depth < GP.MIN_DEPTH:
+            # 最小深さ未満なら演算子
+            g_child1 = Gene(g_id=self.g_len-1, node_type=Gene.NODE_ARITHMETIC)        
+        elif depth < GP.MAX_DEPTH: 
+            # 最大深さ未満ならランダムで演算子かオペランド
             g_child1 = Gene(g_id=self.g_len-1)
         else:
-            # 最大深度に到達していれば乱数ノード
-            g_child1 = Gene(g_id=self.g_len-1, is_operand=True)
+            # 最大深度に到達していればオペランド
+            g_child1 = Gene(g_id=self.g_len-1, node_type=Gene.NODE_OPERAND)
 
         g_parent.arg1_id = g_child1.g_id
         self.chrom_dict[g_child1.g_id] = g_child1                       
@@ -50,12 +53,15 @@ class Chromosome:
             self.append_gene(g_parent=g_child1, depth=depth+1)
 
                         
-        # 左側引数 右とやること同じ
+        # 右側引数 左とやること同じ
         self.g_len += 1   
-        if depth < GP.MAX_DEPTH: 
+        if depth < GP.MIN_DEPTH:
+            # 最小深さ未満なら演算子
+            g_child2 = Gene(g_id=self.g_len-1, node_type=Gene.NODE_ARITHMETIC)        
+        elif depth < GP.MAX_DEPTH: 
             g_child2 = Gene(g_id=self.g_len-1)
         else:
-            g_child2 = Gene(g_id=self.g_len-1, is_operand=True)            
+            g_child2 = Gene(g_id=self.g_len-1, node_type=Gene.NODE_OPERAND)            
 
         g_parent.arg2_id = g_child2.g_id
         self.chrom_dict[g_child2.g_id] = g_child2               
@@ -118,11 +124,49 @@ class Chromosome:
                 return g
         return None
     
+    def get_gene_subtree(self, g_id, subtree: dict, st_id=0):
+        """ 指定した遺伝子IDより先のサブツリーを取得する """
+        
+        # まず先頭 サブツリーも先頭（ルート）はid0とする
+        cur_id = st_id
+        subtree[cur_id] = self.chrom_dict[g_id]
+        subtree[cur_id].g_id = st_id
+
+        if subtree[cur_id].node_type == Gene.NODE_ARITHMETIC:
+            # 演算子ノードなら左右オペランドで再帰的に抽出
+            st_arg1_id = st_id+1
+            st_id = self.get_gene_subtree(g_id=subtree[cur_id].arg1_id, subtree=subtree, st_id=st_arg1_id)
+            subtree[cur_id].arg1_id = st_arg1_id
+            
+            st_arg2_id = st_id+1
+            st_id = self.get_gene_subtree(g_id=subtree[cur_id].arg2_id, subtree=subtree, st_id=st_arg2_id)
+            subtree[cur_id].arg2_id = st_arg2_id
+
+        return st_id
+            
+    def get_allele(self, locus):
+        """ 対立遺伝子をひとつ取り出す """
+        return None
+    
     def set_gene(self, locus, g: Gene):
         """ 染色体に遺伝子をセットする """
         if locus >= 0 and locus < self.g_len:
             self.chrom[locus] = g
-    
-    def get_allele(self, locus):
-        """ 対立遺伝子をひとつ取り出す """
-        return None
+            
+    def delete_subtree(self, g_id):
+        """ 指定した遺伝子idより先のサブツリーを削除する """
+        if self.chrom_dict[g_id].node_type == Gene.NODE_ARITHMETIC:
+            self.delete_subtree(self.chrom_dict[g_id].arg1_id)
+            self.delete_subtree(self.chrom_dict[g_id].arg2_id)
+
+        del self.chrom_dict[g_id]
+        self.g_len = self.chrom_dict.__len__()         
+        self.gtype = self.get_GType()
+                    
+    def set_gene_subtree(self, g_id, subtree: dict, st_id=0):
+        """ 遺伝子idより先の遺伝子をセットする """
+        st_gene = subtree[st_id]
+        self.chrom_dict[g_id] = st_gene
+        if st_gene.node_type == Gene.NODE_ARITHMETIC:
+            pass
+            

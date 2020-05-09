@@ -64,11 +64,75 @@ def create_group(show=False):
 
     return sort_group_by_fitness(group)
 
+#%%
+def select_indivisual(group, sel_num=1):
+    """ 個体の選択 selection
+     ランキング方式を使用する
+    """
+    selected_idv = []
+    selected_flg = [0 for i in range(GP.rank_tbl.__len__())]
+    
+    # sel_num < len(rank_tbl)個の個体を選択する
+    while selected_idv.__len__() < sel_num:
+        # 乱数selectionがテーブルのどこに入るか確認
+        selection = np.random.uniform(0, 1)
+        for i in range(GP.rank_tbl.__len__()):
+            if selection < GP.rank_tbl[i]:
+                if selected_flg[i] == 0:
+                    selected_flg[i] = 1
+                    selected_idv.append(group[i])
+                    break
+
+    return selected_idv
+
 
 #%%
 def reproduction(current_group):
+    """ 選択・交叉・突然変異で次世代を生成する """
+    next_group = []
     
-    return current_group
+    # 個体の遺伝子操作を選択するテーブル（各操作の選択確率で生成した累積度数分布）
+    operation_tbl = [GP.CROSSOVER_PROB, 
+                     GP.MUTATION_PROB + GP.CROSSOVER_PROB,
+                     1.0]
+    
+    while next_group.__len__() < GP.GROUP_SIZE:
+        # オペレーションの選択
+        op = np.random.uniform(0, 1)        
+        if op < operation_tbl[0]:
+            # 交叉 個体を2つ選択する
+            sel_idv = select_indivisual(current_group, sel_num=2)
+            
+            # 交差前
+            #sel_idv[0].visualize_indivisual()
+            #sel_idv[1].visualize_indivisual()
+            
+            child_idv1, child_idv2 = sel_idv[0].crossover(sel_idv[1].chrom)
+                        
+            # 交叉によって生まれた個体
+            child_idv1.visualize_indivisual()
+            #child_idv2.visualize_indivisual()
+            
+
+            next_group.append(child_idv1)
+            if next_group.__len__() < GP.GROUP_SIZE:
+                next_group.append(child_idv2)
+
+        """
+        elif op < operation_tbl[1]:
+            # 突然変異
+            sel_idv = select_indivisual(current_group)
+            mutant = sel_idv[0].mutation()
+            next_group.append(mutant)
+
+        else:
+            # 再生 次世代にそのままコピー
+            sel_idv = select_indivisual(current_group)            
+            next_group.append(sel_idv[0])
+        """
+        
+    return sort_group_by_fitness(next_group)
+
 
 #%%
     
@@ -77,36 +141,25 @@ if __name__ == '__main__':
     GP.create_ranking_table()
     
     # 初期集団を生成する
-    current_group = create_group()        
-    
-    # 個体（遺伝子計算ツリーグラフ）可視化
-    current_group[0].visualize_indivisual()
-    print(f'fitness: {current_group[0].fitness}')
-    
-    """
-    
+    current_group = create_group()            
     # 現世代で最も優れた個体
-    most_valuable_idv = Indivisual() # 初期値はランダム
-    # 適応度の変化をグラフ化するためのデータ格納領域
-    optimum_fitness_list = []
-    optimum_fitness_list.append(0)
-    mean_fitness_list = []
-    mean_fitness_list.append(0)
-    
-    # 各世代での歴代最適個体
-    mvp_for_each_generation = []
+    most_valuable_idv = current_group[0] # 初期値は現世代の先頭
+    #most_valuable_idv.visualize_indivisual()
     
     # 世代交代ループ    
     for generation in range(1, GP.GENERATION_LOOP_NUM+1):
         print(f'===== Generation No.{generation} =====')
-
+                
         # 選択（淘汰）・交叉・突然変異による次世代の生成
         next_group = reproduction(current_group)
-        
-                
+                        
         # 世代交代して次のループ
         current_group.clear()
         current_group.extend(next_group)
 
-    """
+
+    
+    # 最強個体（遺伝子計算ツリーグラフ）可視化
+    #most_valuable_idv.visualize_indivisual()
+
     print('finish')
