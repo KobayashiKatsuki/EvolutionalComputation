@@ -110,26 +110,29 @@ def reproduction(current_group):
             child_idv1, child_idv2 = sel_idv[0].crossover(sel_idv[1].chrom)
                         
             # 交叉によって生まれた個体
-            child_idv1.visualize_indivisual()
-            #child_idv2.visualize_indivisual()
-            
+            #child_idv1.visualize_indivisual()
+            #child_idv2.visualize_indivisual()            
 
             next_group.append(child_idv1)
             if next_group.__len__() < GP.GROUP_SIZE:
                 next_group.append(child_idv2)
 
-        """
         elif op < operation_tbl[1]:
             # 突然変異
-            sel_idv = select_indivisual(current_group)
-            mutant = sel_idv[0].mutation()
+            sel_idv = select_indivisual(current_group)            
+            # 変異前
+            #sel_idv[0].visualize_indivisual()
+            mutant = sel_idv[0].mutation()            
+            # 変異後
+            #mutant.visualize_indivisual()
+            
             next_group.append(mutant)
 
         else:
             # 再生 次世代にそのままコピー
             sel_idv = select_indivisual(current_group)            
             next_group.append(sel_idv[0])
-        """
+            
         
     return sort_group_by_fitness(next_group)
 
@@ -160,6 +163,7 @@ if __name__ == '__main__':
 
     
     # 最強個体（遺伝子計算ツリーグラフ）可視化
-    #most_valuable_idv.visualize_indivisual()
+    most_valuable_idv.show_indivisual_info()
+    most_valuable_idv.visualize_indivisual()
 
     print('finish')

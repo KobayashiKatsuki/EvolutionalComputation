@@ -17,13 +17,15 @@ class Indivisual:
     
     def __init__(self, init_chrom=None):
         # この個体が持つ染色体
-        if init_chrom == None:
-            #染色体の遺伝子数の初期値は個体ごとにランダムとする
-            #self.g_len = np.random.randint(GP.INIT_NODE_NUM, GP.INIT_NODE_NUM+10)            
-            self.chrom = Chromosome()
-        else:
-            self.chrom = init_chrom
+        #染色体の遺伝子数の初期値は個体ごとにランダムとする
+        self.chrom = Chromosome()
         
+        # 初期値がある場合は一旦ツリーを削除してコピーする
+        if init_chrom is not None:
+            self.chrom.delete_subtree(0)
+            self.chrom.copy_gene_tree(0, init_chrom.chrom_dict)
+            self.chrom.reset_chrom_info()
+            
         # GAと異なり、染色体側でlenを決める
         self.g_len = self.chrom.g_len         
         # 遺伝子型(genotype)　遺伝子長は個体（解きたい問題）により異なる
@@ -98,53 +100,40 @@ class Indivisual:
          交叉 他の個体のG-typeとランダムで遺伝子を交換する        
         """               
         # ルートノード以外の任意のノード（遺伝子）を一つ選び、交換する
-        crosspoint_id1 = np.random.randint(1, self.g_len+1)
-        #crosspoint_id2 = np.random.randint(1, partner_chrom.g_len+1)
-        
-        print(f'crosspoint1: {crosspoint_id1}')
-        
+        crosspoint_id1 = np.random.randint(1, self.g_len)
+        #crosspoint_id1 = 1
+        crosspoint_id2 = np.random.randint(1, partner_chrom.g_len+1)
+        #crosspoint_id2 = 1
+                
         # crosspointより先の部分木を抽出
         gene_subtree1 = {}
-        #gene_subtree2 = {}        
+        gene_subtree2 = {}        
         self.chrom.get_gene_subtree(g_id=crosspoint_id1, subtree=gene_subtree1)
-        #partner_chrom.get_gene_subtree(g_id=crosspoint_id2, subtree=gene_subtree2)
+        partner_chrom.get_gene_subtree(g_id=crosspoint_id2, subtree=gene_subtree2)
         
-        # サブツリーのテスト用
-        child1_chrom = Chromosome()
-        child1_chrom.delete_subtree(0) # ルートから削除
-        child1_chrom.set_gene_subtree(g_id=0, subtree=gene_subtree1) # ルートからセット
-        child1 = Indivisual(child1_chrom)
+        # サブツリーの入れ替え
+        self.chrom.delete_subtree(crosspoint_id1)
+        self.chrom.set_gene_subtree(g_id=crosspoint_id1, subtree=gene_subtree2)
+        child1 = Indivisual(self.chrom)
 
-        child2_chrom = Chromosome() 
-        child2 = Indivisual(child2_chrom)        
-
-        """
-        child1= Indivisual()
-        child2= Indivisual()
-        """
+        partner_chrom.delete_subtree(crosspoint_id2)
+        partner_chrom.set_gene_subtree(g_id=crosspoint_id2, subtree=gene_subtree1)
+        child2 = Indivisual(partner_chrom)
         
         return child1, child2
 
 #%%
     def mutation(self):
-        """ 突然変異体を生成する """
-        mutant_chrom = Chromosome()
+        """ 突然変異体　ツリーの一部を別のツリーに置き換える """
+        mutant_chrom = Chromosome(is_mutant=True)
         
-        """
-
-        # まずはコピー
-        for locus in range(self.g_len):
-            p_g = self.chrom.get_gene(locus)
-            mutant_chrom.set_gene(locus, p_g)
-            
-        # ランダムで選んだ2か所の遺伝子座を入れ替える                            
-        swap_locus = np.random.choice(np.array(range(self.g_len)), size=2, replace=False)
-        m1_g = self.chrom.get_gene(swap_locus[0])
-        m2_g = self.chrom.get_gene(swap_locus[1])
-        mutant_chrom.set_gene(swap_locus[0], m2_g)
-        mutant_chrom.set_gene(swap_locus[1], m1_g)
-        """
-        mutant = Indivisual(mutant_chrom)
+        mutation_point = np.random.randint(1, self.g_len)
+        #mutation_point = 1
+        
+        # 突然変異の染色体と交叉する
+        self.chrom.delete_subtree(mutation_point)
+        self.chrom.set_gene_subtree(g_id=mutation_point, subtree=mutant_chrom.chrom_dict)
+        mutant = Indivisual(self.chrom)
         
         return mutant
     
