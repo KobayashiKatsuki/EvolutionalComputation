@@ -163,7 +163,7 @@ if __name__ == '__main__':
 
     
     # 最強個体（遺伝子計算ツリーグラフ）可視化
-    most_valuable_idv.show_indivisual_info()
+    #most_valuable_idv.show_indivisual_info()
     most_valuable_idv.visualize_indivisual()
 
     print('finish')

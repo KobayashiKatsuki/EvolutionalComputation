@@ -147,7 +147,7 @@ class Chromosome:
                 st_arg2_id = st_id+1
                 st_id = self.get_gene_subtree(g_id=subtree[cur_id].arg2_id, subtree=subtree, st_id=st_arg2_id)
                 subtree[cur_id].arg2_id = st_arg2_id
-                
+                            
             return st_id
         
         except:
@@ -203,20 +203,24 @@ class Chromosome:
     
     def copy_gene_tree(self, g_id, src_tree: dict, s_id=0):
         """ 遺伝子ツリーを染色体にコピーしていく """
-        cur_id = g_id
-        self.chrom_dict[cur_id] = copy.deepcopy(src_tree[s_id])
-        self.chrom_dict[cur_id].g_id = g_id
-        
-        if self.chrom_dict[cur_id].node_type == Gene.NODE_ARITHMETIC:            
-            g_arg1_id = g_id+1
-            g_id = self.copy_gene_tree(g_id=g_arg1_id, src_tree=src_tree, s_id=src_tree[s_id].arg1_id)
-            self.chrom_dict[cur_id].arg1_id = g_arg1_id
+        try:
+            cur_id = g_id
+            self.chrom_dict[cur_id] = copy.deepcopy(src_tree[s_id])
+            self.chrom_dict[cur_id].g_id = g_id
             
-            g_arg2_id = g_id+1
-            g_id = self.copy_gene_tree(g_id=g_arg2_id, src_tree=src_tree, s_id=src_tree[s_id].arg2_id)
-            self.chrom_dict[cur_id].arg2_id = g_arg2_id
+            if self.chrom_dict[cur_id].node_type == Gene.NODE_ARITHMETIC:            
+                g_arg1_id = g_id+1
+                g_id = self.copy_gene_tree(g_id=g_arg1_id, src_tree=src_tree, s_id=src_tree[s_id].arg1_id)
+                self.chrom_dict[cur_id].arg1_id = g_arg1_id
                 
-        return g_id
+                g_arg2_id = g_id+1
+                g_id = self.copy_gene_tree(g_id=g_arg2_id, src_tree=src_tree, s_id=src_tree[s_id].arg2_id)
+                self.chrom_dict[cur_id].arg2_id = g_arg2_id
+                    
+            return g_id
+
+        except:
+            return None
 
 #%% 
 if __name__ == '__main__':

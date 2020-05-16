@@ -100,11 +100,15 @@ class Indivisual:
          交叉 他の個体のG-typeとランダムで遺伝子を交換する        
         """               
         # ルートノード以外の任意のノード（遺伝子）を一つ選び、交換する
-        crosspoint_id1 = np.random.randint(1, self.g_len)
-        #crosspoint_id1 = 1
-        crosspoint_id2 = np.random.randint(1, partner_chrom.g_len+1)
-        #crosspoint_id2 = 1
-                
+        # 遺伝子idのリスト（0以外）
+        g_id_list1 = list(self.chrom.chrom_dict.keys())
+        g_id_list1.remove(0)
+        crosspoint_id1 = np.random.choice(g_id_list1)                
+
+        g_id_list2 = list(partner_chrom.chrom_dict.keys())
+        g_id_list2.remove(0)
+        crosspoint_id2 = np.random.choice(g_id_list2)
+        
         # crosspointより先の部分木を抽出
         gene_subtree1 = {}
         gene_subtree2 = {}        
