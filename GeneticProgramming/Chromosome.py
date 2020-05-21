@@ -39,12 +39,14 @@ class Chromosome:
         """ 指定した遺伝子に再帰的に遺伝子を追加していく """
         """ g_anc: 追加対象に指定した遺伝子, d: 追加する階層の深さ """
         
+        max_depth = GP.MAX_DEPTH if is_mutant is False else GP.MAX_MUTANT_DEPTH
+        
         # 左側引数
         self.g_len += 1           
         if depth < GP.MIN_DEPTH:
             # 最小深さ未満なら演算子
             g_child1 = Gene(g_id=self.g_len-1, node_type=Gene.NODE_ARITHMETIC)        
-        elif depth < GP.MAX_DEPTH if is_mutant is True else GP.MAX_MUTANT_DEPTH: 
+        elif depth < max_depth: 
             # 最大深さ未満ならランダムで演算子かオペランド
             g_child1 = Gene(g_id=self.g_len-1)
         else:
@@ -64,7 +66,7 @@ class Chromosome:
         if depth < GP.MIN_DEPTH:
             # 最小深さ未満なら演算子
             g_child2 = Gene(g_id=self.g_len-1, node_type=Gene.NODE_ARITHMETIC)        
-        elif depth < GP.MAX_DEPTH: 
+        elif depth < max_depth: 
             g_child2 = Gene(g_id=self.g_len-1)
         else:
             g_child2 = Gene(g_id=self.g_len-1, node_type=Gene.NODE_OPERAND)            
@@ -129,14 +131,14 @@ class Chromosome:
             if code == g.g_code:
                 return g
         return None
-    
+
     def get_gene_subtree(self, g_id, subtree: dict, st_id=0):
         """ 指定した遺伝子IDより先のサブツリーを取得する """
         try:
             # サブツリーの先頭（ルート）もid0とする
             cur_id = st_id
             subtree[cur_id] = copy.deepcopy(self.chrom_dict[g_id])
-            subtree[cur_id].g_id = st_id
+            subtree[cur_id].g_id = st_id # サブツリー内で新IDにする
 
             if subtree[cur_id].node_type == Gene.NODE_ARITHMETIC:
                 # 演算子ノードなら左右オペランドで再帰的に抽出
@@ -175,13 +177,70 @@ class Chromosome:
 
             # deleteする
             del self.chrom_dict[g_id]
+            self.g_len = len(self.chrom_dict)
             
         except:
             return None
-                    
+
+    def graft_gene_tree(self, x_id, trunk: dict, subtree: dict):
+        """ 幹（trunk）に部分木（subtree）を接ぎ木してchrom_dictへ格納 """
         
+        # 今保持している木を全削除
+        self.delete_subtree(0)
+        # 接ぎ木する
+        self.g_len = 1
+        self.chrom_dict[0] = copy.deepcopy(trunk[0]) 
+        self.set_gene_subtree(g_parent=trunk[0], x_id=x_id, trunk=trunk, subtree=subtree)        
+        
+
+    def set_gene_subtree(self, g_parent:Gene, x_id, trunk: dict, subtree: dict, g_id=0, st_id=0):
+        # 左側引数
+        self.g_len += 1   
+        is_crossover = False
+             
+        if self.g_len-1 < x_id or self.g_len > x_id+len(subtree):
+            g_child1 = copy.deepcopy(trunk[g_id])
+        else:
+            g_child1 = copy.deepcopy(subtree[st_id])
+            is_crossover = True
+
+        g_child1.g_id = self.g_len-1
+        g_parent.arg1_id = g_child1.g_id
+        self.chrom_dict[g_child1.g_id] = g_child1 
+
+        if g_child1.node_type == Gene.NODE_ARITHMETIC:
+            if is_crossover is True:
+                st_id = subtree[st_id].arg1_id
+            else:
+                g_id = trunk[g_id].arg1_id
+            
+            self.set_gene_subtree(g_parent=g_child1, x_id=x_id, trunk=trunk, subtree=subtree,
+                                  g_id=g_id, st_id=st_id)
+            
+        # 右側引数 左とやること同じ
+        self.g_len += 1   
+        is_crossover = False
+             
+        if self.g_len-1 < x_id or self.g_len > x_id+len(subtree):
+            g_child2 = copy.deepcopy(trunk[g_id])
+        else:
+            g_child2 = copy.deepcopy(subtree[st_id])
+            is_crossover = True
+
+        g_child2.g_id = self.g_len-1
+        g_parent.arg2_id = g_child2.g_id
+        self.chrom_dict[g_child2.g_id] = g_child2 
+
+        if g_child2.node_type == Gene.NODE_ARITHMETIC:
+            if is_crossover is True:
+                st_id = subtree[st_id].arg2_id
+            else:
+                g_id = trunk[g_id].arg2_id
+            
+            self.set_gene_subtree(g_parent=g_child1, x_id=x_id, trunk=trunk, subtree=subtree,
+                                  g_id=g_id, st_id=st_id)
+    """    
     def set_gene_subtree(self, g_id, subtree: dict, st_id=0):
-        """ 遺伝子idより先の遺伝子をセットする """
         try:
             st_gene = subtree[st_id]
             if st_id > 0:
@@ -200,11 +259,16 @@ class Chromosome:
 
         except:
             return None
-    
+    """
+
     def copy_gene_tree(self, g_id, src_tree: dict, s_id=0):
         """ 遺伝子ツリーを染色体にコピーしていく """
+       
+        self.chrom_dict = src_tree
+        
+        """
         try:
-            cur_id = g_id
+            
             self.chrom_dict[cur_id] = copy.deepcopy(src_tree[s_id])
             self.chrom_dict[cur_id].g_id = g_id
             
@@ -221,6 +285,8 @@ class Chromosome:
 
         except:
             return None
+            
+        """
 
 #%% 
 if __name__ == '__main__':

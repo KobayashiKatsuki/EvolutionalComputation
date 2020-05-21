@@ -97,10 +97,10 @@ class Indivisual:
 #%%
     def crossover(self, partner_chrom: Chromosome):
         """ 
-         交叉 他の個体のG-typeとランダムで遺伝子を交換する        
+         交叉 他の個体とランダムで遺伝子を交換する        
         """               
         # ルートノード以外の任意のノード（遺伝子）を一つ選び、交換する
-        # 遺伝子idのリスト（0以外）
+        # 遺伝子idのリスト（0以外. 0から入れ替えると遺伝子すべてを入れ替えてしまう）
         g_id_list1 = list(self.chrom.chrom_dict.keys())
         g_id_list1.remove(0)
         crosspoint_id1 = np.random.choice(g_id_list1)                
@@ -109,19 +109,23 @@ class Indivisual:
         g_id_list2.remove(0)
         crosspoint_id2 = np.random.choice(g_id_list2)
         
-        # crosspointより先の部分木を抽出
-        gene_subtree1 = {}
-        gene_subtree2 = {}        
-        self.chrom.get_gene_subtree(g_id=crosspoint_id1, subtree=gene_subtree1)
-        partner_chrom.get_gene_subtree(g_id=crosspoint_id2, subtree=gene_subtree2)
+        # crosspointで幹（trunk）と部分木（subtree）に分割
+        trunk1 = {}
+        self.chrom.get_gene_subtree(g_id=0, subtree=trunk1) # 幹
+        subtree1 = {}
+        self.chrom.get_gene_subtree(g_id=crosspoint_id1, subtree=subtree1) # 部分木
+
+        trunk2 = {}
+        partner_chrom.get_gene_subtree(g_id=0, subtree=trunk2)
+        subtree2 = {}                
+        partner_chrom.get_gene_subtree(g_id=crosspoint_id2, subtree=subtree2)
         
         # サブツリーの入れ替え
-        self.chrom.delete_subtree(crosspoint_id1)
-        self.chrom.set_gene_subtree(g_id=crosspoint_id1, subtree=gene_subtree2)
+        self.chrom.graft_gene_tree(x_id=crosspoint_id1, trunk=trunk1, subtree=subtree2)
+        #self.chrom.set_gene_subtree(x_id=crosspoint_id1, subtree=gene_subtree2)        
         child1 = Indivisual(self.chrom)
 
-        partner_chrom.delete_subtree(crosspoint_id2)
-        partner_chrom.set_gene_subtree(g_id=crosspoint_id2, subtree=gene_subtree1)
+        partner_chrom.graft_gene_tree(x_id=crosspoint_id2, trunk=trunk2, subtree=subtree1)
         child2 = Indivisual(partner_chrom)
         
         return child1, child2

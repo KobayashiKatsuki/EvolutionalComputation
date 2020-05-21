@@ -104,14 +104,14 @@ def reproduction(current_group):
             sel_idv = select_indivisual(current_group, sel_num=2)
             
             # 交差前
-            #sel_idv[0].visualize_indivisual()
-            #sel_idv[1].visualize_indivisual()
+            sel_idv[0].visualize_indivisual()
+            sel_idv[1].visualize_indivisual()
             
             child_idv1, child_idv2 = sel_idv[0].crossover(sel_idv[1].chrom)
                         
             # 交叉によって生まれた個体
-            #child_idv1.visualize_indivisual()
-            #child_idv2.visualize_indivisual()            
+            child_idv1.visualize_indivisual()
+            child_idv2.visualize_indivisual()            
 
             next_group.append(child_idv1)
             if next_group.__len__() < GP.GROUP_SIZE:
@@ -164,6 +164,7 @@ if __name__ == '__main__':
     
     # 最強個体（遺伝子計算ツリーグラフ）可視化
     #most_valuable_idv.show_indivisual_info()
+    most_valuable_idv.fitness
     most_valuable_idv.visualize_indivisual()
 
     print('finish')

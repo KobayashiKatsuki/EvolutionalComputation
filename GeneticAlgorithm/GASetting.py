@@ -14,7 +14,7 @@ class GASetting:
     PROBLEM_TYPE = 'TSP'
     
     # 何世代ループするか
-    GENERATION_LOOP_NUM = 400
+    GENERATION_LOOP_NUM = 300
     # 1世代を形成する集団のサイズ
     GROUP_SIZE = 300 
     # 交叉確率
@@ -29,6 +29,9 @@ class GASetting:
     rank_tbl = []
     # 探索する要素を格納する領域
     item = OrderedDict()
+    # 収束判定
+    converge_counter = 0
+    CONVERGE_TH = 20
     
     # 問題ごとの設定
     if PROBLEM_TYPE == 'KNAPSACK':

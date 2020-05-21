@@ -30,6 +30,9 @@ from GASetting import GASetting as GA
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.animation as anm
+from matplotlib.animation import PillowWriter
+
 from matplotlib import rcParams
 rcParams['font.family'] = 'sans-serif'
 rcParams['font.sans-serif'] = ['Hiragino Maru Gothic Pro', 'Yu Gothic', 'Meirio', 'Takao', 'IPAexGothic', 'IPAPGothic', 'Noto Sans CJK JP']
@@ -153,6 +156,22 @@ def is_converged(current_group, next_group):
     集団全体の平均適応度増加率が一定期間一定値以下なら収束
     """
     converged = False
+    
+    # 現世代のmvpの適応度
+    current_fitness = current_group[0].fitness
+    # 次世代のmvpの適応度
+    next_fitness = next_group[0].fitness
+    
+    # 誤差が10000分の1以下が一定世代以上続けば収束
+    diff = np.abs(current_fitness - next_fitness)
+    if diff < 0.0001:
+        GA.converge_counter += 1
+    else:
+        GA.converge_counter = 0
+        
+    if GA.converge_counter > GA.CONVERGE_TH-1:
+        converged = True
+    
     # 未実装
     return converged
 
@@ -210,40 +229,41 @@ if __name__ == '__main__':
     print('finish')
     
     
-    # TSPのとき描画してみる    
-    if GA.PROBLEM_TYPE == 'TSP':
-        fig = plt.figure()
-        ax = fig.add_subplot(1, 1, 1)
-        plt.show()   
-        
-        generation = 0
-        for mvp in mvp_for_each_generation:
-            generation += 1
-            plt.cla()  
-            plt.xlim(-1, 11)
-            plt.ylim(-1, 11)
+    # KNAPSACKのときfitnessをプロットしてみる
+    if GA.PROBLEM_TYPE == 'KNAPSACK':
+        generation_label = [i for i in range(GA.GENERATION_LOOP_NUM + 1)]
+        plt.plot(generation_label, mean_fitness_list, marker='o', color='red', markersize=3)
+        plt.plot(generation_label, optimum_fitness_list, marker='o', color='blue', markersize=3)
+        plt.xlabel('Generation')
+        plt.ylabel('Fitness')
+        plt.show()    
     
+    # TSPのとき描画してみる    
+    elif GA.PROBLEM_TYPE == 'TSP':
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)        
+        
+        def update(generation):
+            if generation!=0:
+                plt.cla()  
+                plt.xlim(-1, 11)
+                plt.ylim(-1, 11)
+            
+            mvp = mvp_for_each_generation[generation]
             city_px = []
             city_py = []           
-            for (px, py) in mvp.ptype:
+            for (px, py) in mvp.ptype:               
                 plt.plot(px, py, marker='o',color='blue', markersize=5)
                 city_px.append(px)
                 city_py.append(py)
+                
             city_px.append(city_px[0])
             city_py.append(city_py[0])
-                
+            
+            plt.title(f'第{generation+1}世代    fitness={mvp.fitness:.5f}')
             plt.plot(city_px, city_py, color='red')
-            plt.title(f'第{generation}世代    fitness={mvp.fitness:.5f}')
-            plt.pause(0.1)
-    
-    
-    # fitnessをプロットしてみる
-    """
-    generation_label = [i for i in range(GA.GENERATION_LOOP_NUM + 1)]
-    plt.plot(generation_label, mean_fitness_list, marker='o', color='red', markersize=3)
-    plt.plot(generation_label, optimum_fitness_list, marker='o', color='blue', markersize=3)
-    plt.xlabel('Generation')
-    plt.ylabel('Fitness')
-    plt.show()    
-    """
+
+        ani = anm.FuncAnimation(fig, update, interval=100, frames=mvp_for_each_generation.__len__())        
+        ani.save('GA.gif', writer='pillow', fps=10) 
+
 # %%
