@@ -241,13 +241,12 @@ if __name__ == '__main__':
     # TSPのとき描画してみる    
     elif GA.PROBLEM_TYPE == 'TSP':
         fig = plt.figure()
-        ax = fig.add_subplot(1, 1, 1)        
+        ax = fig.add_subplot(1, 1, 1)     
         
         def update(generation):
-            if generation!=0:
-                plt.cla()  
-                plt.xlim(-1, 11)
-                plt.ylim(-1, 11)
+            plt.cla()  
+            plt.xlim(-1, 11)
+            plt.ylim(-1, 11)
             
             mvp = mvp_for_each_generation[generation]
             city_px = []
