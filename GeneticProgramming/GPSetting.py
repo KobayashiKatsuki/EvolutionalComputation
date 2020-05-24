@@ -16,7 +16,7 @@ class GPSetting:
     # 1世代を形成する集団のサイズ
     GROUP_SIZE = 100
     # 交叉確率
-    CROSSOVER_PROB = 0.50    
+    CROSSOVER_PROB = 0.30    
     # 突然変異率(必ず 交叉率 + 突然変異率 < 1 とする)
     MUTATION_PROB = 0.15   
     # 収束判定
