@@ -20,12 +20,21 @@ class Chromosome:
     
     def __init__(self, is_mutant=False):
         self.chrom_dict = {} # 遺伝子IDをキー、遺伝子オブジェクトをバリューとした辞書
-        # ルートノード
-        g_rn = Gene(g_id=0, node_type=Gene.NODE_ARITHMETIC)
         self.g_len = 1
-        self.chrom_dict[g_rn.g_id] = g_rn        
-        # 枝葉を再帰的に追加していく
-        self.append_gene(g_parent=g_rn, depth=1, is_mutant=is_mutant)
+        
+        mutant_single_node_det = np.random.rand()
+        if is_mutant == True  and mutant_single_node_det < GP.MUTANT_SINGLE_NODE_RATE:            
+            # 突然変異で単一ノードになった場合
+            g_single = Gene(g_id=0, node_type=Gene.NODE_OPERAND)
+            self.chrom_dict[g_single.g_id] = g_single
+            
+        else:
+            # ルートノード
+            g_rn = Gene(g_id=0, node_type=Gene.NODE_ARITHMETIC)            
+            self.chrom_dict[g_rn.g_id] = g_rn        
+            # 枝葉を再帰的に追加していく
+            self.append_gene(g_parent=g_rn, depth=1, is_mutant=is_mutant)
+        
         # Gtypeは遺伝子ID,遺伝子コードのリスト
         self.gtype = self.get_GType()
         
@@ -88,7 +97,7 @@ class Chromosome:
             # 演算子　左右の引数オペランドを取得
             arg1 = self.calc_gene_tree(g_id=g.arg1_id, **testcase)
             arg2 = self.calc_gene_tree(g_id=g.arg2_id, **testcase)
-            
+                        
             if g.g_code == 'add':
                 ans = arg1 + arg2
             elif g.g_code == 'sub':
@@ -98,14 +107,18 @@ class Chromosome:
             elif g.g_code == 'div':
                 eps = 1.0e-7 # 0除算は0とする
                 ans = arg1 / arg2 if np.abs(arg2) > eps else 0
-                
+            
+            #print(f'* {arg1} {g.g_code} {arg2} = {ans}')
+            
         elif g.node_type == Gene.NODE_OPERAND:
             # オペランドノード
             if g.g_code in testcase.keys():
                 ans = testcase[g.g_code]
             else:            
                 ans = g.g_code
-        
+                
+            #print(f' ope: {ans}')
+            
         return ans
     
     
@@ -183,114 +196,88 @@ class Chromosome:
             return None
 
     def graft_gene_tree(self, x_id, trunk: dict, subtree: dict):
-        """ 幹（trunk）に部分木（subtree）を接ぎ木してchrom_dictへ格納 """
+        """ 幹（trunk）に部分木（subtree）を接ぎ木(graft)してchrom_dictへ格納 """
         
-        # 今保持している木を全削除
+        # 今, chromクラスで保持している木を全削除
         self.delete_subtree(0)
         # 接ぎ木する
         self.g_len = 1
-        self.chrom_dict[0] = copy.deepcopy(trunk[0]) 
+        self.chrom_dict[0] = copy.deepcopy(trunk[0])         
         self.set_gene_subtree(g_parent=trunk[0], x_id=x_id, trunk=trunk, subtree=subtree)        
         
 
-    def set_gene_subtree(self, g_parent:Gene, x_id, trunk: dict, subtree: dict, g_id=0, st_id=0):
-        # 左側引数
-        self.g_len += 1   
-        is_crossover = False
-             
-        if self.g_len-1 < x_id or self.g_len > x_id+len(subtree):
-            g_child1 = copy.deepcopy(trunk[g_id])
+    def set_gene_subtree(self, g_parent:Gene, x_id, trunk: dict, subtree: dict, depth=1):
+        """ 部分木を接ぎ木する """
+        # 左側の処理
+        self.g_len += 1           
+        if self.g_len-1 < x_id or self.g_len-1 > x_id+len(subtree)-1:
+            g_id = g_parent.arg1_id
+            g_child = copy.deepcopy(trunk[g_id])
         else:
-            g_child1 = copy.deepcopy(subtree[st_id])
-            is_crossover = True
+            st_id = subtree[self.g_len-x_id-1].g_id                    
+            g_child = copy.deepcopy(subtree[st_id])
 
-        g_child1.g_id = self.g_len-1
-        g_parent.arg1_id = g_child1.g_id
-        self.chrom_dict[g_child1.g_id] = g_child1 
+        g_child.g_id = self.g_len-1        
+        g_parent.arg1_id = self.g_len-1
 
-        if g_child1.node_type == Gene.NODE_ARITHMETIC:
-            if is_crossover is True:
-                st_id = subtree[st_id].arg1_id
-            else:
-                g_id = trunk[g_id].arg1_id
+        self.chrom_dict[g_child.g_id] = g_child
+
+        if g_child.node_type == Gene.NODE_ARITHMETIC:
+            self.set_gene_subtree(g_parent=g_child, x_id=x_id, trunk=trunk, subtree=subtree, depth=depth+1)
             
-            self.set_gene_subtree(g_parent=g_child1, x_id=x_id, trunk=trunk, subtree=subtree,
-                                  g_id=g_id, st_id=st_id)
             
-        # 右側引数 左とやること同じ
-        self.g_len += 1   
-        is_crossover = False
-             
-        if self.g_len-1 < x_id or self.g_len > x_id+len(subtree):
-            g_child2 = copy.deepcopy(trunk[g_id])
+        # 右側の処理
+        self.g_len += 1           
+        if self.g_len-1 < x_id or self.g_len-1 > x_id+len(subtree)-1:
+            g_id = g_parent.arg2_id
+            g_child = copy.deepcopy(trunk[g_id])
         else:
-            g_child2 = copy.deepcopy(subtree[st_id])
-            is_crossover = True
+            st_id = subtree[self.g_len-x_id-1].g_id                     
+            g_child = copy.deepcopy(subtree[st_id])
 
-        g_child2.g_id = self.g_len-1
-        g_parent.arg2_id = g_child2.g_id
-        self.chrom_dict[g_child2.g_id] = g_child2 
+        g_child.g_id = self.g_len-1        
+        g_parent.arg2_id = self.g_len-1
 
-        if g_child2.node_type == Gene.NODE_ARITHMETIC:
-            if is_crossover is True:
-                st_id = subtree[st_id].arg2_id
-            else:
-                g_id = trunk[g_id].arg2_id
-            
-            self.set_gene_subtree(g_parent=g_child1, x_id=x_id, trunk=trunk, subtree=subtree,
-                                  g_id=g_id, st_id=st_id)
-    """    
-    def set_gene_subtree(self, g_id, subtree: dict, st_id=0):
-        try:
-            st_gene = subtree[st_id]
-            if st_id > 0:
-                # 接続する位置のidはg_lenで降り直し
-                g_id = st_id + self.g_len              
-            self.chrom_dict[g_id] = st_gene
-            
-            if self.chrom_dict[g_id].node_type == Gene.NODE_ARITHMETIC:
-                sub_arg1_id = st_gene.arg1_id + self.g_len
-                self.set_gene_subtree(g_id=sub_arg1_id, subtree=subtree, st_id=st_gene.arg1_id)
-                self.chrom_dict[g_id].arg1_id = sub_arg1_id 
-                
-                sub_arg2_id = st_gene.arg2_id + self.g_len
-                self.set_gene_subtree(g_id=sub_arg2_id, subtree=subtree, st_id=st_gene.arg2_id)
-                self.chrom_dict[g_id].arg2_id = sub_arg2_id            
+        self.chrom_dict[g_child.g_id] = g_child
 
-        except:
-            return None
-    """
+        if g_child.node_type == Gene.NODE_ARITHMETIC:
+            self.set_gene_subtree(g_parent=g_child, x_id=x_id, trunk=trunk, subtree=subtree, depth=depth+1)
 
-    def copy_gene_tree(self, g_id, src_tree: dict, s_id=0):
-        """ 遺伝子ツリーを染色体にコピーしていく """
-       
-        self.chrom_dict = src_tree
+        # ルートの場合、chrom_dictのarg1, 2が未更新なのでここで更新
+        if depth==1:
+            self.chrom_dict[0] = g_parent
         
+        # DEBUG
         """
-        try:
-            
-            self.chrom_dict[cur_id] = copy.deepcopy(src_tree[s_id])
-            self.chrom_dict[cur_id].g_id = g_id
-            
-            if self.chrom_dict[cur_id].node_type == Gene.NODE_ARITHMETIC:            
-                g_arg1_id = g_id+1
-                g_id = self.copy_gene_tree(g_id=g_arg1_id, src_tree=src_tree, s_id=src_tree[s_id].arg1_id)
-                self.chrom_dict[cur_id].arg1_id = g_arg1_id
-                
-                g_arg2_id = g_id+1
-                g_id = self.copy_gene_tree(g_id=g_arg2_id, src_tree=src_tree, s_id=src_tree[s_id].arg2_id)
-                self.chrom_dict[cur_id].arg2_id = g_arg2_id
-                    
-            return g_id
-
-        except:
-            return None
-            
+        print(f'parent: ({g_parent.g_id}){g_parent.g_code}')
+        print(f'  arg1: ({g_parent.arg1_id}){g_child_left}')
+        print(f'  arg2: ({g_parent.arg2_id}){g_child.g_code}')
         """
 
-#%% 
+
+    def show_chrom_g_code(self, g: Gene, tree: dict, depth=0):
+        depth_mapping = '├'
+        for d in range(depth):
+            depth_mapping += '─'
+        
+        print(f'{depth_mapping}({g.g_id}){g.g_code}')
+        
+        if g.node_type == Gene.NODE_ARITHMETIC:
+            arg1_g = tree[g.arg1_id]
+            self.show_chrom_g_code(g=arg1_g, tree=tree, depth=depth+1)
+            
+            arg2_g = tree[g.arg2_id]
+            self.show_chrom_g_code(g=arg2_g, tree=tree, depth=depth+1)
+        
+#%%
 if __name__ == '__main__':
     dbg_chrom = Chromosome()
-    subtree={}
-    dbg_chrom.get_gene_subtree(0, subtree)        
-            
+    dbg_chrom.show_chrom_g_code(dbg_chrom.chrom_dict[0], dbg_chrom.chrom_dict)
+    for tc_num, tc in GP.testcase.items():
+        print('------------------------------')
+        print(f'{tc_num}: {tc}, ans: {GP.testcase_answer[tc_num]}')
+        calc = dbg_chrom.calc_gene_tree(g_id=0, **tc)
+        print(calc)
+    
+    
+    

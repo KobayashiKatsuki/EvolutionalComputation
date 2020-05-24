@@ -12,20 +12,25 @@ import pandas as pd
 class GPSetting:
     # 解きたい問題タイプ　いずれかのコメントアウト外す
     # 何世代ループするか
-    GENERATION_LOOP_NUM = 10
+    GENERATION_LOOP_NUM = 100
     # 1世代を形成する集団のサイズ
-    GROUP_SIZE = 2#10
+    GROUP_SIZE = 100
     # 交叉確率
-    CROSSOVER_PROB = 1#0.8    
+    CROSSOVER_PROB = 0.50    
     # 突然変異率(必ず 交叉率 + 突然変異率 < 1 とする)
     MUTATION_PROB = 0.15   
     # 収束判定
     converged_dif = 0.1    
     # 遺伝子ツリーの最小/最大深さ
-    MIN_DEPTH = 2
-    MAX_DEPTH = 4
+    MIN_DEPTH = 3
+    MAX_DEPTH = 8
+    # 突然変異で単一ノードにする確率
+    MUTANT_SINGLE_NODE_RATE = 0.1
     # 突然変異体の最大深さ
-    MAX_MUTANT_DEPTH = 3
+    MAX_MUTANT_DEPTH = 4
+    # 収束判定
+    converge_counter = 0
+    CONVERGE_TH = 10
     
     # ランキング選択のテーブル
     rank_tbl = []

@@ -11,6 +11,7 @@ from Gene import Gene
 from Chromosome import Chromosome
 from GPSetting import GPSetting as GP
 from graphviz import Digraph
+import tempfile
 
 #%%
 class Indivisual:    
@@ -23,7 +24,7 @@ class Indivisual:
         # 初期値がある場合は一旦ツリーを削除してコピーする
         if init_chrom is not None:
             self.chrom.delete_subtree(0)
-            self.chrom.copy_gene_tree(0, init_chrom.chrom_dict)
+            self.chrom.chrom_dict = init_chrom.chrom_dict
             self.chrom.reset_chrom_info()
             
         # GAと異なり、染色体側でlenを決める
@@ -55,7 +56,7 @@ class Indivisual:
                 g_tree.edge(f'({g_id}) {gene.g_code}', f'({gene.arg1_id}) {arg1_code}')
                 g_tree.edge(f'({g_id}) {gene.g_code}', f'({gene.arg2_id}) {arg2_code}')
         
-        g_tree.view()        
+        g_tree.view(tempfile.mktemp('.gv'))        
         return
         
     def show_GType(self):
@@ -65,17 +66,22 @@ class Indivisual:
     def calc_fitness(self):
         """ 適応度計算 """        
         # ツリーで各テストデータの計算を行い、結果の平均誤差の逆数を適応度とする
+        
         total_err = 0
         for tc_num, tc in GP.testcase.items():
             # ツリーによる計算結果
             calc_result = self.chrom.calc_gene_tree(g_id=0, **tc)   
-            # 絶対誤差を加算
-            total_err += np.abs(GP.testcase_answer[tc_num] - calc_result)
+            # 絶対誤差の平均を加算
+            mean_err = np.abs(GP.testcase_answer[tc_num] - calc_result) / GP.testcase.__len__()
+            total_err += mean_err
+            # 誤差が一定値超えたら頭打ち
+            if total_err > 1.0e7:
+                break
         
-        # 誤差平均の逆数 誤差0（完全に一致）ならそれもう答えなのでめっちゃでかくする
-        eps = 1.0e-7
-        f_val = GP.testcase.__len__() / total_err if total_err > eps else 1.0e7
-        
+        # 誤差平均の逆数 誤差10000分の1以下は正解として打ち切り
+        eps = 0.0001 # 1.0e-7
+        f_val = 1 / total_err if total_err > eps else 10000
+
         return f_val
             
     
@@ -110,10 +116,10 @@ class Indivisual:
         crosspoint_id2 = np.random.choice(g_id_list2)
         
         # crosspointで幹（trunk）と部分木（subtree）に分割
-        trunk1 = {}
-        self.chrom.get_gene_subtree(g_id=0, subtree=trunk1) # 幹
-        subtree1 = {}
-        self.chrom.get_gene_subtree(g_id=crosspoint_id1, subtree=subtree1) # 部分木
+        trunk1 = {} # 幹
+        self.chrom.get_gene_subtree(g_id=0, subtree=trunk1) 
+        subtree1 = {} # 部分木
+        self.chrom.get_gene_subtree(g_id=crosspoint_id1, subtree=subtree1) 
 
         trunk2 = {}
         partner_chrom.get_gene_subtree(g_id=0, subtree=trunk2)
@@ -122,11 +128,17 @@ class Indivisual:
         
         # サブツリーの入れ替え
         self.chrom.graft_gene_tree(x_id=crosspoint_id1, trunk=trunk1, subtree=subtree2)
-        #self.chrom.set_gene_subtree(x_id=crosspoint_id1, subtree=gene_subtree2)        
         child1 = Indivisual(self.chrom)
 
         partner_chrom.graft_gene_tree(x_id=crosspoint_id2, trunk=trunk2, subtree=subtree1)
         child2 = Indivisual(partner_chrom)
+        
+        """
+        print("-----------------")
+        self.chrom.show_chrom_g_code(self.chrom.chrom_dict[0], self.chrom.chrom_dict)
+        partner_chrom.show_chrom_g_code(partner_chrom.chrom_dict[0], partner_chrom.chrom_dict)
+        print("-----------------")
+        """
         
         return child1, child2
 
@@ -137,10 +149,11 @@ class Indivisual:
         
         mutation_point = np.random.randint(1, self.g_len)
         #mutation_point = 1
-        
-        # 突然変異の染色体と交叉する
-        self.chrom.delete_subtree(mutation_point)
-        self.chrom.set_gene_subtree(g_id=mutation_point, subtree=mutant_chrom.chrom_dict)
+
+        # 突然変異の染色体と交叉する        
+        trunk = {} # 幹
+        self.chrom.get_gene_subtree(g_id=0, subtree=trunk)         
+        self.chrom.graft_gene_tree(x_id=mutation_point, trunk=trunk, subtree=mutant_chrom.chrom_dict)
         mutant = Indivisual(self.chrom)
         
         return mutant
@@ -149,5 +162,4 @@ class Indivisual:
 #%% DEBUG
 if __name__ == '__main__':
     dbg_idv = Indivisual()
-    dbg_idv.crossover(dbg_idv.chrom)
-   
+    dbg_idv.calc_fitness()

@@ -172,7 +172,6 @@ def is_converged(current_group, next_group):
     if GA.converge_counter > GA.CONVERGE_TH-1:
         converged = True
     
-    # 未実装
     return converged
 
 
