@@ -190,8 +190,10 @@ if __name__ == '__main__':
     mvp = next_pop[0]
     
     # 比較
+    print(f'prim: {prim.fitness}')
     print(prim.formula)
     print('↓')
+    print(f'mvp: {mvp.fitness}')
     print(mvp.formula)
 
     generation_label = [i for i in range(GE.GENERATION_LOOP_NUM)]
@@ -201,9 +203,4 @@ if __name__ == '__main__':
     plt.show()    
 
     print('finish')
-    
-    
-    
-    
-    
     

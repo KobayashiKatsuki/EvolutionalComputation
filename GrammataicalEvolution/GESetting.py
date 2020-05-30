@@ -14,11 +14,11 @@ rcParams['font.sans-serif'] = ['Hiragino Maru Gothic Pro', 'Yu Gothic', 'Meirio'
 
 class GESetting():
     # 何世代ループするか
-    GENERATION_LOOP_NUM = 200
+    GENERATION_LOOP_NUM = 300
     # 1世代を形成する集団のサイズ
     POPULATION_SIZE = 100
     # 交叉確率
-    CROSSOVER_PROB = 0.8    
+    CROSSOVER_PROB = 0.9    
     # 突然変異率(必ず 交叉率 + 突然変異率 < 1 とする)
     MUTATION_PROB = 0.15   
     # 遺伝子何個に1個の割合で突然変異させるか（必ず1以上　1だとすべての遺伝子を対立遺伝子に入れ替える）
@@ -77,7 +77,7 @@ class GESetting():
 #%%
     def calc_ge_formula(self, x):
         # 計算したい式をここにかけ！
-        formula = "((x*1)*(((((0.1-x)*1)*(((((0.1-x)*1)*x)-x)*0.1))*0.5)*0.1))"
+        formula = "0.5*(((x*0.5*(((x*1*2-0.1)*0.1)+0.1)+0.5*x-x)*x)+1)*2"
         ans = eval(formula)
         return ans
         
@@ -89,6 +89,7 @@ if __name__ == '__main__':
     #print(ge.testcase_answer)
     
     # 計算してグラフを描画する
+    """
     x = 0
     ans_arr = []
     for i in range(100):
@@ -100,4 +101,20 @@ if __name__ == '__main__':
     plt.plot(x_label, ans_arr, marker='o', color='red', markersize=3)
     plt.xlabel('x')
     plt.ylabel('f(x)')
-    plt.show()    
+    plt.show() 
+    """
+    
+    # 真の分布との差異
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)    
+    plt.cla()
+    
+    for tc_idx, tc in ge.testcase.items():                
+        x = tc['x']
+        idv_ans = ge.calc_ge_formula(x=tc['x'])
+        train_ans = ge.testcase_answer[tc_idx]
+        
+        plt.plot(x, idv_ans, marker='o',color='red', markersize=5)
+        plt.plot(x, train_ans, marker='o',color='blue', markersize=5)
+       
+    plt.show() 
