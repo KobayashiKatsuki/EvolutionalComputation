@@ -1,0 +1,47 @@
+ガイドラインなしBTそのままだとフリーダムすぎる
+可読性低い
+計算機負荷が高い
+NOPだらけのサブツリー
+
+なので
+The following structure was used:
+
+The root node is a selector, with a variable number of
+Behavior Block (BB) sub-trees, encoding sub-behaviors;
+ルートはSelector, その下はBB（サブツリー）
+
+Each BB consists of a sequence of one or more conditions, 
+followed by a sequence of actions or sub-trees;
+BBはSequence, その下には必ず一つ以上のcondition
+それに続いてactionかsubtree
+複雑になりすぎる場合はconditonをひとつか二つに制約
+
+A last (unconditioned) BB, which is either a sequence
+of actions and sub-trees, or a default navigation behavior
+(when using A*).
+最後のBBはデフォルト（A*を使う場合）
+優先度最下位
+
+DefaultGoRight
+A*を使用した場合のデフォルトBB
+パスプランナとフォローのふたつからなる
+
+IsFollowingPath　マリオがA*のパスに沿っているか
+
+<GEXOMarker>タグ　非終端記号？
+コドンの値をPTypeに引っ張り出してくる
+交叉点は遺伝的操作で適当に選ぶのではなく
+encodingの段階で（候補箇所を）埋め込んでおくということ
+2点交叉利用
+
+自分自身のサブツリーとの入れ替えOK
+優先度交換
+
+適応度
+fitness value is a weighted sum of distance traveled and
+other factors, such as enemy kills and collected items (this
+is the actual Mario AI Benchmark score). 
+
+移動できた距離、倒した敵の数、集めたアイテム数の重み付き和
+
+
