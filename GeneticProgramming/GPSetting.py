@@ -18,7 +18,9 @@ class GPSetting:
     # 交叉確率
     CROSSOVER_PROB = 0.30    
     # 突然変異率(必ず 交叉率 + 突然変異率 < 1 とする)
-    MUTATION_PROB = 0.15   
+    MUTATION_PROB = 0.1   
+    # トーナメントサイズ
+    TOURNAMENT_SIZE = 10
     # 収束判定
     converged_dif = 0.1    
     # 遺伝子ツリーの最小/最大深さ
@@ -27,13 +29,10 @@ class GPSetting:
     # 突然変異で単一ノードにする確率
     MUTANT_SINGLE_NODE_RATE = 0.1
     # 突然変異体の最大深さ
-    MAX_MUTANT_DEPTH = 4
+    MAX_MUTANT_DEPTH = 3
     # 収束判定
     converge_counter = 0
     CONVERGE_TH = 10
-    
-    # ランキング選択のテーブル
-    rank_tbl = []
  
     """
      テストデータセット
@@ -60,39 +59,5 @@ class GPSetting:
 #%%    
     def __init__(self):
         pass
-    
-    def create_ranking_table():
-        """ ランキング選択のテーブルを生成する """
-        # テーブルは先頭からランキングが高いものとする（先頭は1位、末尾は最下位）
-        # 確率は上位10%～30%を高めに設定、30%より下位は同確率とする
-        best_size = round(GPSetting.GROUP_SIZE * 0.1)
-        rank_prob_tbl = [] # 確率テーブル
-        for i in range(GPSetting.GROUP_SIZE):
-            if i < best_size*3:
-                if i < best_size*2:
-                    if i < best_size:
-                        # 上位10%
-                        rank_prob_tbl.append(12)
-                    else:
-                        # 上位20%
-                        rank_prob_tbl.append(8)
-                else:
-                    # 上位30%
-                    rank_prob_tbl.append(5)
-            else:
-                # 30%より下位
-                rank_prob_tbl.append(1)
-        
-        # テーブルの各要素を合計で割って確率にする
-        sum_of_tbl = sum(rank_prob_tbl)
-        rank_prob_tbl = [x/sum_of_tbl for x in rank_prob_tbl]
-        # 累積度数分布に変換する
-        for i in range(GPSetting.GROUP_SIZE):
-            if i > 0:
-                GPSetting.rank_tbl.append(rank_prob_tbl[i] + GPSetting.rank_tbl[i-1])
-            else:
-                GPSetting.rank_tbl.append(rank_prob_tbl[i])
-                
-        return
-        
+          
         

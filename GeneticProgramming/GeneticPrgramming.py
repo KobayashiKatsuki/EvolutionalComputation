@@ -26,6 +26,7 @@ dtreeviz -> pip install dtreeviz
 from GPSetting import GPSetting as GP
 from Indivisual import Indivisual
 import numpy as np
+import random
 import matplotlib.pyplot as plt
 import matplotlib.animation as anm
 from matplotlib.animation import PillowWriter
@@ -41,7 +42,8 @@ def sort_group_by_fitness(group):
         idv_list.append((idv.fitness, idv))
     
     #　個体を適応度の順にソートする
-    idv_sorted = sorted(idv_list, key=lambda x:x[0], reverse=True)
+    # 今回は適応度が小さいほど優良（誤差が小さい）
+    idv_sorted = sorted(idv_list, key=lambda x:x[0], reverse=False)
     
     # ソート結果に応じて現在の集団（リスト）を生成する
     sorted_group = []
@@ -79,21 +81,15 @@ def select_indivisual(group, sel_num=1):
      ランキング方式を使用する
     """
     selected_idv = []
-    selected_flg = [0 for i in range(GP.rank_tbl.__len__())]
     
-    # sel_num < len(rank_tbl)個の個体を選択する
     while selected_idv.__len__() < sel_num:
-        # 乱数selectionがテーブルのどこに入るか確認
-        selection = np.random.uniform(0, 1)
-        for i in range(GP.rank_tbl.__len__()):
-            if selection < GP.rank_tbl[i]:
-                if selected_flg[i] == 0:
-                    selected_flg[i] = 1
-                    selected_idv.append(group[i])
-                    break
+       # トーナメントサイズの分ランダムに集団から取得
+        tornament_idvs = random.sample(group, GP.TOURNAMENT_SIZE)
+        # 最大個体を取得
+        sorted_tornament_idvs = sort_group_by_fitness(tornament_idvs)
+        selected_idv.append(sorted_tornament_idvs[0])
 
     return selected_idv
-
 
 #%%
 def reproduction(current_group):
@@ -158,29 +154,21 @@ def is_converged(current_group, next_group):
     # 次世代のmvpの適応度
     next_fitness = next_group[0].fitness
     
-    # 適応度めっちゃ高い個体が出たら正解とみなして打ち切り
-    if next_fitness > 9999:
-        converged = True
+    # 誤差が10000分の1以下が一定世代以上続けば収束
+    diff = np.abs(current_fitness - next_fitness)
+    if diff < 0.0001:
+        GP.converge_counter += 1
+    else:
+        GP.converge_counter = 0
         
-    else:        
-        # 誤差が10000分の1以下が一定世代以上続けば収束
-        diff = np.abs(current_fitness - next_fitness)
-        if diff < 0.0001:
-            GP.converge_counter += 1
-        else:
-            GP.converge_counter = 0
-            
-        if GP.converge_counter > GP.CONVERGE_TH-1:
-            converged = True
+    if GP.converge_counter > GP.CONVERGE_TH-1:
+        converged = True
     
     return converged
 
 #%% 遺伝的プログラミングメイン処理
     
 if __name__ == '__main__':
-    # 初期設定
-    GP.create_ranking_table()
-    
     # 初期集団を生成する
     current_group = create_group()            
     # 現世代で最も優れた個体

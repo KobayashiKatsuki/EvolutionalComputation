@@ -65,22 +65,20 @@ class Indivisual:
     
     def calc_fitness(self):
         """ 適応度計算 """        
-        # ツリーで各テストデータの計算を行い、結果の平均誤差の逆数を適応度とする
-        
-        total_err = 0
+        # ツリーで各テストデータの計算を行い、結果の平均誤差を適応度とする
+        # = 小さいほど優良個体
+        mean_err = 0
         for tc_num, tc in GP.testcase.items():
             # ツリーによる計算結果
             calc_result = self.chrom.calc_gene_tree(g_id=0, **tc)   
             # 絶対誤差の平均を加算
-            mean_err = np.abs(GP.testcase_answer[tc_num] - calc_result) / GP.testcase.__len__()
-            total_err += mean_err
+            abs_err = np.abs(GP.testcase_answer[tc_num] - calc_result) / GP.testcase.__len__()
+            mean_err += abs_err
             # 誤差が一定値超えたら頭打ち
-            if total_err > 1.0e7:
+            if mean_err > 1.0e7:
                 break
-        
-        # 誤差平均の逆数 誤差10000分の1以下は正解として打ち切り
-        eps = 0.0001 # 1.0e-7
-        f_val = 1 / total_err if total_err > eps else 10000
+
+        f_val = mean_err
 
         return f_val
             
