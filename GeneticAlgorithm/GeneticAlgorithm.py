@@ -260,6 +260,15 @@ if __name__ == '__main__':
             
             plt.title(f'第{generation+1}世代    fitness={mvp.fitness:.5f}')
             plt.plot(city_px, city_py, color='red')
+            if generation == 0:
+                fig.savefig(f"{generation+1}gen.png")
+            elif generation == 24:
+                fig.savefig(f"{generation+1}gen.png")
+            elif generation == 49:
+                fig.savefig(f"{generation+1}gen.png")
+            elif generation == mvp_for_each_generation.__len__()-1:
+                fig.savefig(f"{generation+1}gen.png")
+               
 
         ani = anm.FuncAnimation(fig, update, interval=100, frames=mvp_for_each_generation.__len__())        
         ani.save('GA.gif', writer='pillow', fps=10) 
